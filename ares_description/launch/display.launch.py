@@ -32,7 +32,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "gui",
                 default_value="true",
-                description="Show the joint slider GUI so the linkage can be driven by hand.",
+                description="Show the joint sliders so the linkage can be driven by hand.",
             ),
             Node(
                 package="robot_state_publisher",
