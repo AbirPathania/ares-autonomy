@@ -3,7 +3,6 @@ _README: Frozen numeric tables from the ARES Autonomy Build Spec v1, 4 September
   prints. Do not hand edit. ares_math is tested against this file at 1e-9 relative tolerance.
 _spec: ARES Autonomy Build Spec v1
 _spec_date: '2026-09-04'
-_generated: '2026-09-05'
 _hull_revision: H-2
 working_case:
   f_px: 640.0

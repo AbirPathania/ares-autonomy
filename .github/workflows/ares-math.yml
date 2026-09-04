@@ -30,10 +30,7 @@ jobs:
           pip install pytest hypothesis sympy ruff
 
       - name: The golden file still matches the document
-        run: |
-          python tools/generate_golden.py
-          git diff --exit-code ares_math/tests/golden_values.yaml \
-            || (echo "golden_values.yaml is stale, regenerate and commit it" && exit 1)
+        run: python tools/check_golden.py
 
       - name: Symbolic derivations match the closed forms
         run: python tools/derive_symbolic.py

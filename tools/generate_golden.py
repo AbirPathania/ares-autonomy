@@ -22,7 +22,6 @@ Run:  python tools/generate_golden.py
 """
 
 import math
-from datetime import date
 from pathlib import Path
 
 import yaml
@@ -394,7 +393,8 @@ def mast_height_table():
     return rows
 
 
-def main():
+def build_document():
+    """Assemble every table. Each value is checked against the document."""
     doc = {
         "_README": (
             "Frozen numeric tables from the ARES Autonomy Build Spec v1, "
@@ -405,7 +405,6 @@ def main():
         ),
         "_spec": "ARES Autonomy Build Spec v1",
         "_spec_date": "2026-09-04",
-        "_generated": date.today().isoformat(),
         "_hull_revision": "H-2",
         "working_case": {
             "f_px": F_WORKING,
@@ -438,7 +437,11 @@ def main():
             f"{sorted(missed)}. If the spec was reissued, delete the entry."
         )
     doc["_errata"] = ERRATA
+    return doc
 
+
+def main():
+    doc = build_document()
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with OUT.open("w") as fh:
         yaml.safe_dump(doc, fh, sort_keys=False, default_flow_style=False, width=100)

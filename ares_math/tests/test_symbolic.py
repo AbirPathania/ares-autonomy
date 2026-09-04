@@ -41,3 +41,18 @@ def test_every_derivation_matches_its_closed_form(derive):
         "skew_disparity_error = f * tan(omega*dt)",
     ):
         assert required in names, f"{required} was not derived"
+
+
+@pytest.mark.slow
+def test_the_golden_file_still_matches_the_document():
+    """Regenerating the tables from the document reproduces the frozen file.
+
+    Runs the same check CI runs, so a formula edit fails locally before it
+    fails on a runner.
+    """
+    checker = Path(__file__).resolve().parents[2] / "tools" / "check_golden.py"
+    spec = importlib.util.spec_from_file_location("check_golden", checker)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["check_golden"] = module
+    spec.loader.exec_module(module)
+    module.main()
