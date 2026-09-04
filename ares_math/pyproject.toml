@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ares-math"
+version = "0.1.0"
+description = "ARES-G geometry and perception math. Pure Python, no ROS, no side effects."
+readme = "../README.md"
+requires-python = ">=3.10"
+license = { text = "Proprietary" }
+authors = [{ name = "Patroclus Systems" }]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "pint>=0.22",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "hypothesis>=6.90",
+    "sympy>=1.12",
+    "ruff>=0.5",
+]
+
+[tool.setuptools]
+# The package directory is also the project root, which is what the build
+# spec's section 05 tree and its `pip install -e ./ares_math` both assume.
+package-dir = { "ares_math" = "." }
+packages = ["ares_math", "ares_math.tests"]
+
+[tool.setuptools.package-data]
+"ares_math" = ["tests/golden_values.yaml"]

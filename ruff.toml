@@ -1,0 +1,11 @@
+line-length = 92
+target-version = "py310"
+
+[lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+# Z, B, f and d_disp are the symbols the build spec writes the formulas in.
+# Keeping them makes the code checkable against the document line by line.
+ignore = ["E741", "N803", "N806"]
+
+[lint.per-file-ignores]
+"ares_math/tests/*" = ["E501"]

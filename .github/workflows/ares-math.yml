@@ -1,0 +1,45 @@
+name: phase 1 gate
+
+# Build spec section 12: every table in section 03 reproduced to 1e-9, and
+# the symbolic check passes. ares_math has no ROS dependency, so this runs
+# on a plain runner in seconds.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ares-math:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ./ares_math
+          pip install pytest hypothesis sympy ruff
+
+      - name: The golden file still matches the document
+        run: |
+          python tools/generate_golden.py
+          git diff --exit-code ares_math/tests/golden_values.yaml \
+            || (echo "golden_values.yaml is stale, regenerate and commit it" && exit 1)
+
+      - name: Symbolic derivations match the closed forms
+        run: python tools/derive_symbolic.py
+
+      - name: Test suite
+        run: pytest -q
+
+      - name: Lint
+        run: ruff check ares_math tools

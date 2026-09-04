@@ -1,0 +1,26 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.hypothesis/
+.ruff_cache/
+.DS_Store
+
+# ROS 2 / colcon
+build/
+install/
+log/
+
+# Datasets and renders, never committed
+data/
+datasets/
+eval/rellis_ablation/data/
+ares_synth/output/
+*.bag
+*.mcap
+*.pt
+*.pth
+*.onnx
