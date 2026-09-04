@@ -10,7 +10,17 @@ claiming 17 kg while the engineering says something else entirely.
 """
 
 from . import constants, kinematics, optics, safety, stereo, units
-from .constants import BOGIE, CAMERA, CHASSIS, LIMITS, MASS, REVISION, SENSORS, TRENCH
+from .constants import (
+    BOGIE,
+    CAMERA,
+    CHASSIS,
+    LIMITS,
+    LINK_MASS,
+    MASS,
+    REVISION,
+    SENSORS,
+    TRENCH,
+)
 from .units import Q_, ureg
 
 __version__ = "0.1.0"
@@ -26,6 +36,7 @@ __all__ = [
     "CAMERA",
     "CHASSIS",
     "LIMITS",
+    "LINK_MASS",
     "MASS",
     "REVISION",
     "SENSORS",

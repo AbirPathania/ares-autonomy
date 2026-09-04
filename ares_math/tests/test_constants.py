@@ -166,6 +166,7 @@ def test_no_module_outside_constants_defines_a_physical_number():
     allowed = {
         0.0, 1.0, 2.0, 0.5, 3.6, 90.0, 180.0, 100.0, 10.0, 4.0,
         0.1, 60.0, 1000.0,
+        3.0, 12.0,  # rigid body inertia denominators
         1e-6, 1e-9, 1e-12, 1e-14,
     }
     package = pathlib.Path(constants.__file__).parent
@@ -181,3 +182,44 @@ def test_no_module_outside_constants_defines_a_physical_number():
     assert not offenders, "physical numbers outside constants.py: " + ", ".join(
         offenders
     )
+
+
+def test_the_link_masses_add_up_to_the_configuration_budget():
+    """The simulation model must weigh what the mass ladder says it weighs.
+
+    Six wheels, two rockers, two bogies, one mast, two camera units and the
+    hull. If a link is added to the URDF without a mass being taken from
+    somewhere, this fails.
+    """
+    from ares_math.constants import LINK_MASS
+
+    total = (
+        6 * LINK_MASS.wheel
+        + 2 * LINK_MASS.rocker
+        + 2 * LINK_MASS.bogie
+        + LINK_MASS.mast
+        + 2 * LINK_MASS.camera_unit
+        + LINK_MASS.hull
+    )
+    assert total == pytest.approx(MASS.wheeled_mine, abs=1e-9)
+    assert total < MASS.ceiling
+
+
+def test_the_link_breakdown_is_declared_as_an_assumption():
+    assert "MODEL ASSUMPTION" in constants.LinkMasses.__doc__
+
+
+def test_the_optical_rotation_matches_what_the_document_prints():
+    """Stored exactly, printed rounded. They must agree to the printed digits.
+
+    The document writes -1.5707963268 for -pi/2 in the section 08 joint. That
+    is fine as a printed value and wrong as a stored one, because it leaves a
+    3.2 nanoradian residual on every camera transform.
+    """
+    import math
+
+    from ares_math.constants import OPTICAL_RPY, OPTICAL_RPY_AS_PRINTED
+
+    assert OPTICAL_RPY == (-math.pi / 2.0, 0.0, -math.pi / 2.0)
+    for exact, printed in zip(OPTICAL_RPY, OPTICAL_RPY_AS_PRINTED, strict=True):
+        assert round(exact, 10) == pytest.approx(printed, abs=1e-12)

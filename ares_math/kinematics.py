@@ -34,6 +34,10 @@ __all__ = [
     "solve_pose",
     "pose_on_plane",
     "WHEEL_NAMES",
+    "box_inertia",
+    "cylinder_inertia",
+    "rod_inertia",
+    "rpy_matrix",
 ]
 
 WHEEL_NAMES = ("front", "middle", "rear")
@@ -345,3 +349,66 @@ def pose_on_plane(ground_pitch_deg, ground_roll_deg, z0=0.0):
         bogie_left=0.0,
         bogie_right=0.0,
     )
+
+
+# --------------------------------------------------------------------------
+# Rigid body inertia primitives.
+#
+# The URDF generator needs an inertia tensor for every link. These live here
+# rather than in the generator so that the rule holds: no equation is
+# implemented anywhere except ares_math. All return the six independent
+# components (ixx, ixy, ixz, iyy, iyz, izz) about the body centre of mass,
+# axes aligned with the link frame, in kg m^2.
+# --------------------------------------------------------------------------
+
+
+def box_inertia(mass, x, y, z):
+    """Solid rectangular box of side lengths x, y, z."""
+    k = mass / 12.0
+    return (
+        k * (y * y + z * z),
+        0.0,
+        0.0,
+        k * (x * x + z * z),
+        0.0,
+        k * (x * x + y * y),
+    )
+
+
+def cylinder_inertia(mass, radius, length, axis="y"):
+    """Solid cylinder. axis names the symmetry axis in the link frame."""
+    along = 0.5 * mass * radius * radius
+    across = mass * (3.0 * radius * radius + length * length) / 12.0
+    table = {
+        "x": (along, across, across),
+        "y": (across, along, across),
+        "z": (across, across, along),
+    }
+    if axis not in table:
+        raise ValueError("axis must be x, y or z")
+    ixx, iyy, izz = table[axis]
+    return (ixx, 0.0, 0.0, iyy, 0.0, izz)
+
+
+def rod_inertia(mass, length, axis="x"):
+    """Thin rod of given length, used for the rocker and bogie arms."""
+    across = mass * length * length / 12.0
+    table = {
+        "x": (0.0, across, across),
+        "y": (across, 0.0, across),
+        "z": (across, across, 0.0),
+    }
+    if axis not in table:
+        raise ValueError("axis must be x, y or z")
+    ixx, iyy, izz = table[axis]
+    return (ixx, 0.0, 0.0, iyy, 0.0, izz)
+
+
+def rpy_matrix(roll, pitch, yaw=0.0):
+    """ROS fixed axis roll pitch yaw to a rotation matrix.
+
+    The public form of the convention this module uses everywhere, exported
+    so that URDF tooling composes transforms the same way the solver does
+    rather than reimplementing the convention and getting it 90 degrees out.
+    """
+    return _rpy(roll, pitch, yaw)

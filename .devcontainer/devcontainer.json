@@ -1,0 +1,22 @@
+// .devcontainer/devcontainer.json
+//
+// One definition, works on Mac and in Codespaces. Build spec section 06.2.
+// The desktop-lite feature serves a browser desktop on port 6080, so RViz
+// and Gazebo appear in a browser tab in both cases and you never fight
+// XQuartz.
+{
+  "name": "ares-autonomy",
+  "build": { "dockerfile": "Dockerfile" },
+  "features": {
+    "ghcr.io/devcontainers/features/desktop-lite:1": { "password": "ares" }
+  },
+  "forwardPorts": [6080],
+  "portsAttributes": { "6080": { "label": "desktop" } },
+  "containerEnv": {
+    "LIBGL_ALWAYS_SOFTWARE": "1",
+    "DISPLAY": ":1",
+    "ROS_DOMAIN_ID": "42"
+  },
+  "postCreateCommand": "pip install -e ./ares_math && colcon build --symlink-install",
+  "hostRequirements": { "cpus": 8 }
+}

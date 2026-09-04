@@ -55,7 +55,7 @@ on, not hidden.
 |---|---|---|---|---|
 | 0 | RELLIS-3D ablation. Traversability with LiDAR, then stereo only, same platform, same data. | Mac, MPS | A measured number: what accuracy you lose without LiDAR, by terrain class. | not started |
 | 1 | `ares_math` and its full test suite. No ROS yet. | Anywhere | Every table in section 03 reproduced to 1e-9. Symbolic check passes. | **passing** |
-| 2 | Devcontainer, URDF generated from constants, TF tree, RViz. | Mac or Codespace | Rover displays correctly, differential enforced, no TF warnings, optical frame test passes. | not started |
+| 2 | Devcontainer, URDF generated from constants, TF tree, RViz. | Mac or Codespace | Rover displays correctly, differential enforced, no TF warnings, optical frame test passes. | **geometry passing**, RViz needs a container |
 | 3 | Gazebo worlds 1 and 2. Drive control and mobility. | Both | Gates 1 and 2 from section 10. | not started |
 | 4 | Stereo pipeline on rendered RGB. Real matcher, confidence output. | Both | Measured depth error tracks the section 03.2 curve across the range. | not started |
 | 5 | Segmentation, detection, elevation map, Nav2. | Both | Gate 3. Trench detected and stopped for at 0.95 m, missed at 0.50 m. | not started |
@@ -64,6 +64,48 @@ on, not hidden.
 
 Phases run in order. Each gate exists because the next phase is unverifiable
 without it.
+
+## Phase 2, what is in it
+
+The URDF is **generated**, never written. `tools/generate_urdf.py` reads
+`constants.py` and emits `ares_description/urdf/ares_g.urdf.xacro`: 22 links,
+21 joints, every origin traced back to a hull number. Change a constant, re-run
+the generator, re-run pytest. CI fails if the committed URDF is not what the
+constants currently produce.
+
+`ares_description/test/test_urdf_geometry.py` parses the URDF as plain XML and
+composes the transform chain with the same rotation convention the solver uses.
+That is what lets the phase 2 geometry gate run on a laptop in a second, with
+no ROS, no container and no simulator. 23 tests, including:
+
+- the mast camera optical frame sits at 0.95 m in the default pose, which is
+  the gate the build spec names
+- the optical frame is Z forward, X right, Y down, and the mast optical axis
+  points forward and exactly 20 degrees down in `base_link`
+- the right eye is actually on the right, and both eyes of a pair are at the
+  same height and the correct baseline apart
+- the front wheel hangs off the rocker and the middle and rear off the bogie,
+  which is the topology that makes it a rocker-bogie
+- four RGB cameras are simulated, not one depth camera, and ground truth depth
+  is on `/sim/ground_truth/depth` where it cannot reach the control path
+- the drive plugin carries the 4 km/h autonomous cap
+- the URDF is a tree, every link has mass or is a frame, and the masses sum to
+  the configuration budget
+
+What is *not* verified yet: the RViz render and the live TF tree. Both need the
+container, and Docker is not installed on this machine. The differential is
+declared two ways in the Gazebo block, as a gearbox joint and as a plugin, and
+which one the physics engine actually honours is a phase 3 question that only
+the simulator can answer.
+
+### One more rounding found
+
+Section 08 prints the optical frame rotation as `-1.5707963268`, a ten digit
+rounding of `-pi/2`. Harmless as a printed value, but it leaves a 3.2 nanoradian
+residual on every camera transform and turns an exact axis test into an
+approximate one. `constants.py` stores `-pi/2` exactly and keeps the printed
+form alongside it, with a test asserting the two agree to the precision the
+document prints at.
 
 ## Phase 1, what is in it
 
@@ -83,9 +125,17 @@ ares_math/                  pure Python, no ROS, no side effects
     test_kinematics.py
     test_constants.py
     test_symbolic.py
+ares_description/            ROS 2 package, hull revision H-2
+  urdf/ares_g.urdf.xacro    GENERATED from constants.py, never hand edited
+  launch/display.launch.py  the phase 2 RViz gate
+  config/ares.rviz
+  test/test_urdf_geometry.py
+.devcontainer/              one definition, Mac and Codespaces
 tools/
   generate_golden.py        rebuilds golden_values.yaml from the document
+  check_golden.py           asserts the committed golden file still matches
   derive_symbolic.py        sympy derivations of every closed form
+  generate_urdf.py          emits the URDF from constants.py
 ```
 
 `ares_math` has no ROS dependency so it can be tested in milliseconds, on any
@@ -159,7 +209,16 @@ Rebuild the frozen tables from the document, and re-run the derivations:
 
 ```bash
 python tools/generate_golden.py
+python tools/check_golden.py
 python tools/derive_symbolic.py
+python tools/generate_urdf.py
+```
+
+Bring up the container, on a Mac with Docker Desktop or in a Codespace, and
+show the rover:
+
+```bash
+ros2 launch ares_description display.launch.py
 ```
 
 ## The rules that keep this true six months from now

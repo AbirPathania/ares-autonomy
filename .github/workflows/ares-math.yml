@@ -1,4 +1,4 @@
-name: phase 1 gate
+name: phase 1 and 2 gates
 
 # Build spec section 12: every table in section 03 reproduced to 1e-9, and
 # the symbolic check passes. ares_math has no ROS dependency, so this runs
@@ -35,8 +35,14 @@ jobs:
       - name: Symbolic derivations match the closed forms
         run: python tools/derive_symbolic.py
 
+      - name: The URDF is what constants.py currently produces
+        run: |
+          python tools/generate_urdf.py
+          git diff --exit-code ares_description/urdf/ares_g.urdf.xacro \
+            || (echo "the URDF is stale, run tools/generate_urdf.py and commit it" && exit 1)
+
       - name: Test suite
         run: pytest -q
 
       - name: Lint
-        run: ruff check ares_math tools
+        run: ruff check ares_math ares_description tools

@@ -10,6 +10,7 @@ import from here or are generated from here. A literal number outside
 this file is a review rejection.
 """
 
+import math
 from dataclasses import dataclass
 
 REVISION = "H-2"  # UPDATE, and re-run pytest, whenever the hull revises
@@ -105,12 +106,36 @@ class RockerBogie:
     bogie_pivot_z: float = 0.217  # == trunnion_z, see docstring
 
 
+@dataclass(frozen=True)
+class LinkMasses:
+    """Per link mass for the simulation model, kilograms.
+
+    MODEL ASSUMPTION, not stated in H-2. H-2 gives configuration totals, not
+    a link breakdown, and a physics simulation needs one. These distribute
+    MassBudget.wheeled_mine across the links in proportions that are
+    plausible for the parts they represent, and the total is asserted equal
+    to the budget by test_constants.py.
+
+    Replace with the real breakdown when H-3 provides it. Until then, treat
+    absolute dynamic results from the simulator as indicative and relative
+    results, such as whether the bogie articulates over a step, as sound.
+    """
+
+    wheel: float = 0.45  # each, six of them
+    rocker: float = 0.60  # each, two of them
+    bogie: float = 0.45  # each, two of them
+    mast: float = 0.35
+    camera_unit: float = 0.15  # each, two of them
+    hull: float = 17.80  # the remainder, including compute and payload
+
+
 CHASSIS = Chassis()
 MASS = MassBudget()
 SENSORS = Sensors()
 LIMITS = Limits()
 CAMERA = Camera()
 TRENCH = GoverningObstacle()
+LINK_MASS = LinkMasses()
 BOGIE = RockerBogie()
 
 # Axle station X positions in the base_link frame, front to rear.
@@ -122,4 +147,11 @@ WHEEL_Y = CHASSIS.track / 2.0
 # base_link convention is X forward, Y left, Z up.
 # Optical convention is Z forward, X right, Y down.
 # This is the fixed rotation between them, build spec section 08.
-OPTICAL_RPY = (-1.5707963268, 0.0, -1.5707963268)
+#
+# The document prints -1.5707963268, which is a ten digit rounding of -pi/2.
+# Stored exactly here instead, because the rounding leaves a 3.2 nanoradian
+# residual that turns an exact axis test into an approximate one for no
+# reason. test_constants.py asserts this still matches what the document
+# prints, to the precision the document prints it at.
+OPTICAL_RPY = (-math.pi / 2.0, 0.0, -math.pi / 2.0)
+OPTICAL_RPY_AS_PRINTED = (-1.5707963268, 0.0, -1.5707963268)
