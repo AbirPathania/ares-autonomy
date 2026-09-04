@@ -6,7 +6,9 @@ build-backend = "setuptools.build_meta"
 name = "ares-math"
 version = "0.1.0"
 description = "ARES-G geometry and perception math. Pure Python, no ROS, no side effects."
-readme = "../README.md"
+# No readme field. The repository README lives one level up, and setuptools
+# refuses to read anything outside the project directory. The package
+# directory is the project root here, per section 05 of the build spec.
 requires-python = ">=3.10"
 license = { text = "Proprietary" }
 authors = [{ name = "Patroclus Systems" }]
