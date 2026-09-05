@@ -53,7 +53,15 @@ sleep 40
 ros2 launch ares_bringup perception.launch.py > /tmp/perception.log 2>&1 &
 sleep 35
 
-python3 tools/run_gate.py --gate "$GATE" --model "$MODEL" --duration 70 $DRIVE
+# Gate 3 needs the rover to actually reach a trench six metres out, and the
+# governor holds it well under a kilometre an hour on patchy coverage, so it
+# gets a longer run. A gate that times out before the vehicle arrives is
+# inconclusive, not a pass.
+DURATION=70
+[ "$GATE" = "3" ] && DURATION=260
+[ "$GATE" = "4" ] && DURATION=180
+
+python3 tools/run_gate.py --gate "$GATE" --model "$MODEL" --duration "$DURATION" $DRIVE
 RC=$?
 
 echo "--- stereo"

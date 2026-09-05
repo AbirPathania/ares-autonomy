@@ -251,41 +251,49 @@ def gate_three(runner, model):
 
     trench_x = 6.0
 
-    # "Stopped somewhere before the trench" is not a criterion. A rover that
-    # halts on the start line for a phantom obstacle satisfies it, and that
-    # is how a gate becomes decorative. It has to APPROACH the trench and
-    # stop near it: close enough that the trench is what stopped it, far
-    # enough that it did not fall in.
-    approach_window = 3.0 * stop
-    travelled = 0.0
-    if runner.odom:
-        travelled = max(x for _, x, _ in runner.odom) - min(
-            x for _, x, _ in runner.odom
+    # The criterion has to be the physical claim, not a proxy for it. Three
+    # earlier versions of this function passed the gate on a rover that never
+    # went near the trench: one that halted on the start line for a phantom
+    # obstacle, one that dipped through zero speed mid-deceleration, and one
+    # that paused and carried on. Each time the measurement was wrong rather
+    # than the vehicle, and each time it read as a pass.
+    #
+    # What section 02 actually claims: from 0.95 m the vehicle sees the floor
+    # in time and stops short of it; from 0.50 m it does not and drives in.
+    # So the test is where the vehicle ENDS UP, and whether it got close
+    # enough for the trench to be the thing that stopped it.
+    if not runner.odom:
+        return False, "no odometry, the rover never moved"
+
+    positions = [x for _, x, _ in runner.odom]
+    final = positions[-1]
+    furthest = max(positions)
+    travelled = furthest - min(positions)
+    approach = trench_x - furthest
+
+    entered = furthest >= trench_x
+    approached = approach <= 2.0 * stop
+
+    if not approached and not entered:
+        detail = (
+            f"got no closer than {approach:.2f} m from the trench, which is "
+            f"further than the {2.0 * stop:.2f} m approach this gate needs to "
+            "mean anything. Give it a longer run"
+        )
+        return False, (
+            f"mast at {height} m. INCONCLUSIVE: {detail}. "
+            f"Travelled {travelled:.2f} m, ended at {final:.2f} m"
         )
 
-    if runner.stopped_at is None:
-        stopped = "never stopped"
-        detected = False
-    elif travelled < trench_x / 3.0:
-        stopped = (
-            f"stopped at x = {runner.stopped_at:.2f} m after only "
-            f"{travelled:.2f} m of travel, which is not an approach"
-        )
-        detected = False
-    else:
-        stopped = f"stopped at x = {runner.stopped_at:.2f} m"
-        detected = trench_x - approach_window <= runner.stopped_at <= trench_x
-
-    verdict = detected == expected_pass
+    verdict = entered != expected_pass
     return verdict, (
-        f"mast at {height} m sees the floor from {seen_from:.3f} m, needs "
+        f"mast at {height} m sees the floor from {seen_from:.3f} m and needs "
         f"{stop:.3f} m to stop, so it should "
-        f"{'STOP IN TIME' if expected_pass else 'FAIL TO STOP'}.\n"
-        f"  Detection window is x in "
-        f"[{trench_x - approach_window:.2f}, {trench_x:.2f}] m after at "
-        f"least {trench_x / 3.0:.2f} m of approach.\n"
-        f"  It {stopped}, travelling {travelled:.2f} m, which is "
-        f"{'correct' if verdict else 'WRONG'}"
+        f"{'STOP SHORT of the trench' if expected_pass else 'DRIVE INTO it'}.\n"
+        f"  Trench at {trench_x:.2f} m. Furthest reached {furthest:.2f} m, "
+        f"ended at {final:.2f} m, travelled {travelled:.2f} m.\n"
+        f"  It {'entered the trench' if entered else 'stopped short'}, "
+        f"which is {'correct' if verdict else 'WRONG'}"
     )
 
 
