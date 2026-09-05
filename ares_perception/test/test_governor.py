@@ -291,3 +291,25 @@ def test_a_genuine_gap_still_shortens_the_range():
     state[blind, :] = UNKNOWN
     reach, _ = trusted_range(state, SPEC, noise=np.full(SPEC.shape, 0.15))
     assert reach == pytest.approx(4.0 - FRONT, abs=0.5)
+
+
+def test_a_gap_a_wheel_spans_is_not_a_gap():
+    """The window floor, stated as the reason it exists.
+
+    A 105 mm wheel radius rolls over a gap far smaller than itself. Judging
+    coverage at a finer scale than the contact patch demands resolution the
+    vehicle could not act on if it had it, and near the rover, where depth
+    uncertainty is millimetres, that floor is the whole window.
+    """
+    from ares_math.constants import CHASSIS
+
+    state = grid(UNKNOWN)
+    xs, _ = SPEC.centres()
+    # Measured every third cell: a 150 mm pitch, larger than a cell and
+    # smaller than the wheel.
+    for i, x in enumerate(xs):
+        if x <= 8.0 and i % 3 == 0:
+            state[i, :] = TRAVERSABLE
+    reach, _ = trusted_range(state, SPEC)
+    assert reach > 6.0
+    assert CHASSIS.rolling_radius == pytest.approx(0.105, abs=1e-9)

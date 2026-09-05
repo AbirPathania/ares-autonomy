@@ -169,14 +169,25 @@ def trusted_range(
     minimum_run = _minimum_unknown_run()
     worst = 1.0
 
-    # Half width of the window each range is judged over: never less than a
-    # cell, and never less than the depth uncertainty there.
+    # Half width of the window each range is judged over.
+    #
+    # Never less than a wheel radius, because a gap the wheel spans is not a
+    # gap the vehicle can fall into, and demanding a measurement finer than
+    # the contact patch asks for resolution the vehicle could not act on if
+    # it had it. Near the rover this is what the window is made of: depth
+    # uncertainty is small at 0.6 m, so it cannot bridge the patchiness there,
+    # and the patchiness near the rover is not quantisation, it is the deck
+    # unit's coverage.
+    #
+    # And never less than the depth uncertainty, which is what dominates
+    # further out, where returns land in disparity stripes.
+    floor = max(spec.cell / 2.0, CHASSIS.rolling_radius)
     if noise is None:
-        half_widths = np.full(len(xs), spec.cell / 2.0)
+        half_widths = np.full(len(xs), floor)
     else:
         centre = np.asarray(noise)[:, corridor]
         half_widths = np.maximum(
-            spec.cell / 2.0, np.nanmax(centre, axis=1) if centre.size else spec.cell
+            floor, np.nanmax(centre, axis=1) if centre.size else floor
         )
 
     for i, x in enumerate(xs):
@@ -206,7 +217,12 @@ def trusted_range(
         # One sparse band is noise. A contiguous unknown region as long as
         # the governing trench is a place the trench could be hiding.
         if x - run_start >= minimum_run:
-            return max(run_start - spec.cell - start, 0.0), worst
+            # Back off by the window, not by a cell. Pooling evidence over a
+            # window smears a boundary by the window's length, and smearing a
+            # safety range outward means claiming ground that was never
+            # measured. Subtracting it puts the error on the conservative
+            # side, where it belongs.
+            return max(run_start - half_widths[i] - start, 0.0), worst
 
     return max(float(xs[-1]) - start, 0.0), 1.0
 
