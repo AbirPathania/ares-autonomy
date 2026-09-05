@@ -1,0 +1,199 @@
+<?xml version="1.0" ?>
+<sdf version="1.10">
+  <!--
+  Gate 2. The obstacle claim.
+  GENERATED FILE. Do not hand edit.
+  Source: ares_math/constants.py, via tools/generate_worlds.py.
+-->
+  <world name="step_field">
+    <physics name="default" type="dart">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-contact-system" name="gz::sim::systems::Contact"/>
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+    <gravity>0 0 -9.8066</gravity>
+    <scene>
+      <ambient>0.6 0.6 0.6 1</ambient>
+      <background>0.7 0.8 0.9 1</background>
+      <shadows>true</shadows>
+    </scene>
+    <light name="sun" type="directional">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 20 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.6123724356957946 -0.35355339059327373 -0.7071067811865475</direction>
+      <attenuation>
+        <range>1000</range>
+        <linear>0.0</linear>
+        <constant>1.0</constant>
+        <quadratic>0.0</quadratic>
+      </attenuation>
+    </light>
+    <model name="terrain">
+      <static>true</static>
+      <pose>0 0 0 0 0 0</pose>
+      <link name="ground">
+        <pose>12.6485685 0.0 -0.25 0 0 0</pose>
+        <collision name="ground_collision">
+          <geometry>
+            <box>
+              <size>34.702863 16.0 0.5</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="ground_visual">
+          <geometry>
+            <box>
+              <size>34.702863 16.0 0.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <pbr>
+              <metal>
+                <albedo_map>../textures/ground.png</albedo_map>
+                <roughness>0.9</roughness>
+                <metalness>0.0</metalness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+      <link name="step_under">
+        <pose>4.0 0.0 0.06125 0 0 0</pose>
+        <collision name="step_under_collision">
+          <geometry>
+            <box>
+              <size>2.0 16.0 0.1225</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="step_under_visual">
+          <geometry>
+            <box>
+              <size>2.0 16.0 0.1225</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <pbr>
+              <metal>
+                <albedo_map>../textures/ground.png</albedo_map>
+                <roughness>0.9</roughness>
+                <metalness>0.0</metalness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+      <link name="step_at_claim">
+        <pose>8.0 0.0 0.1225 0 0 0</pose>
+        <collision name="step_at_claim_collision">
+          <geometry>
+            <box>
+              <size>2.0 16.0 0.245</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="step_at_claim_visual">
+          <geometry>
+            <box>
+              <size>2.0 16.0 0.245</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <pbr>
+              <metal>
+                <albedo_map>../textures/ground.png</albedo_map>
+                <roughness>0.9</roughness>
+                <metalness>0.0</metalness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+      <link name="step_over">
+        <pose>12.0 0.0 0.196 0 0 0</pose>
+        <collision name="step_over_collision">
+          <geometry>
+            <box>
+              <size>2.0 16.0 0.392</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="step_over_visual">
+          <geometry>
+            <box>
+              <size>2.0 16.0 0.392</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <pbr>
+              <metal>
+                <albedo_map>../textures/ground.png</albedo_map>
+                <roughness>0.9</roughness>
+                <metalness>0.0</metalness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <!--
+  GATE 2
+  Steps at 0.122, 0.245 and 0.392 m.
+  The obstacle claim is 0.245 m. The rover must clear
+  the first two and must not clear the third. The bogie must
+  articulate on the way over: a rigid six-wheeler would fail the
+  first step, and a model with the differential missing would
+  climb all three because the hull cannot pitch to bind.
+  Belly clearance is 0.115 m at the V apex.
+  -->
+  </world>
+</sdf>

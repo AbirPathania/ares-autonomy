@@ -1,0 +1,167 @@
+<?xml version="1.0" ?>
+<sdf version="1.10">
+  <!--
+  Gate 3. The governing case, section 02.
+  GENERATED FILE. Do not hand edit.
+  Source: ares_math/constants.py, via tools/generate_worlds.py.
+-->
+  <world name="trench_field">
+    <physics name="default" type="dart">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-contact-system" name="gz::sim::systems::Contact"/>
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+    <gravity>0 0 -9.8066</gravity>
+    <scene>
+      <ambient>0.6 0.6 0.6 1</ambient>
+      <background>0.7 0.8 0.9 1</background>
+      <shadows>true</shadows>
+    </scene>
+    <light name="sun" type="directional">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 20 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.6123724356957946 -0.35355339059327373 -0.7071067811865475</direction>
+      <attenuation>
+        <range>1000</range>
+        <linear>0.0</linear>
+        <constant>1.0</constant>
+        <quadratic>0.0</quadratic>
+      </attenuation>
+    </light>
+    <model name="terrain">
+      <static>true</static>
+      <pose>0 0 0 0 0 0</pose>
+      <link name="ground_near">
+        <pose>0.6485685000000005 0.0 -0.25 0 0 0</pose>
+        <collision name="ground_near_collision">
+          <geometry>
+            <box>
+              <size>10.702863 16.0 0.5</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="ground_near_visual">
+          <geometry>
+            <box>
+              <size>10.702863 16.0 0.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <pbr>
+              <metal>
+                <albedo_map>../textures/ground.png</albedo_map>
+                <roughness>0.9</roughness>
+                <metalness>0.0</metalness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+      <link name="ground_far">
+        <pose>18.25 0.0 -0.25 0 0 0</pose>
+        <collision name="ground_far_collision">
+          <geometry>
+            <box>
+              <size>23.5 16.0 0.5</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="ground_far_visual">
+          <geometry>
+            <box>
+              <size>23.5 16.0 0.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <pbr>
+              <metal>
+                <albedo_map>../textures/ground.png</albedo_map>
+                <roughness>0.9</roughness>
+                <metalness>0.0</metalness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+      <link name="trench_floor">
+        <pose>6.25 0.0 -0.55 0 0 0</pose>
+        <collision name="trench_floor_collision">
+          <geometry>
+            <box>
+              <size>0.5 16.0 0.5</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="trench_floor_visual">
+          <geometry>
+            <box>
+              <size>0.5 16.0 0.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <pbr>
+              <metal>
+                <albedo_map>../textures/ground.png</albedo_map>
+                <roughness>0.9</roughness>
+                <metalness>0.0</metalness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <!--
+  GATE 3, THE ONE THAT MATTERS
+  A 0.5 by 0.3 m trench at x = 6.0 m.
+  Stopping distance at 4 km/h is 1.426 m.
+  From a mast at 0.95 m the floor is visible from 1.583 m: PASS.
+  From 0.50 m the floor is visible from only 0.833 m: FAIL.
+  Run the rover at 4 km/h twice, once at each height. It must stop
+  in time from 0.95 m and must not from 0.50 m. If it passes at
+  0.50 m the simulation is wrong, not the analysis. Find out why
+  before proceeding.
+  The perception path must subscribe ONLY to the two rendered RGB
+  topics and run a real stereo matcher. Ground truth depth goes to
+  /sim/ground_truth/depth and is used only for scoring.
+  -->
+  </world>
+</sdf>

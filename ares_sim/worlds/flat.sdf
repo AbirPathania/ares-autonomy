@@ -1,0 +1,90 @@
+<?xml version="1.0" ?>
+<sdf version="1.10">
+  <!--
+  Gate 1. Frames, calibration, drive control.
+  GENERATED FILE. Do not hand edit.
+  Source: ares_math/constants.py, via tools/generate_worlds.py.
+-->
+  <world name="flat">
+    <physics name="default" type="dart">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-contact-system" name="gz::sim::systems::Contact"/>
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+    <gravity>0 0 -9.8066</gravity>
+    <scene>
+      <ambient>0.6 0.6 0.6 1</ambient>
+      <background>0.7 0.8 0.9 1</background>
+      <shadows>true</shadows>
+    </scene>
+    <light name="sun" type="directional">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 20 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.6123724356957946 -0.35355339059327373 -0.7071067811865475</direction>
+      <attenuation>
+        <range>1000</range>
+        <linear>0.0</linear>
+        <constant>1.0</constant>
+        <quadratic>0.0</quadratic>
+      </attenuation>
+    </light>
+    <model name="terrain">
+      <static>true</static>
+      <pose>0 0 0 0 0 0</pose>
+      <link name="ground">
+        <pose>2.3514314999999995 0.0 -0.25 0 0 0</pose>
+        <collision name="ground_collision">
+          <geometry>
+            <box>
+              <size>14.108588999999998 16.0 0.5</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="ground_visual">
+          <geometry>
+            <box>
+              <size>14.108588999999998 16.0 0.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <pbr>
+              <metal>
+                <albedo_map>../textures/ground.png</albedo_map>
+                <roughness>0.9</roughness>
+                <metalness>0.0</metalness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <!--
+  GATE 1
+  Stereo depth of this plane at 3 m must agree with ground truth
+  to within 0.0176 m, which is the section 03.2 error bound
+  for f=640.0 px, B=0.2 m and a
+  0.25 px disparity sigma.
+  Also: no TF warnings, the differential holds,
+  and the rover drives straight when told to.
+  -->
+  </world>
+</sdf>

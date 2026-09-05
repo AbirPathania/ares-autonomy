@@ -1,0 +1,166 @@
+<?xml version="1.0" ?>
+<sdf version="1.10">
+  <!--
+  Gate 4. Texture, not geometry.
+  GENERATED FILE. Do not hand edit.
+  Source: ares_math/constants.py, via tools/generate_worlds.py.
+-->
+  <world name="snow_scree">
+    <physics name="default" type="dart">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-contact-system" name="gz::sim::systems::Contact"/>
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+    <gravity>0 0 -9.8066</gravity>
+    <scene>
+      <ambient>0.6 0.6 0.6 1</ambient>
+      <background>0.7 0.8 0.9 1</background>
+      <shadows>true</shadows>
+    </scene>
+    <light name="sun" type="directional">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 20 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.29619813272602397 -0.17101007166283438 -0.9396926207859083</direction>
+      <attenuation>
+        <range>1000</range>
+        <linear>0.0</linear>
+        <constant>1.0</constant>
+        <quadratic>0.0</quadratic>
+      </attenuation>
+    </light>
+    <model name="terrain">
+      <static>true</static>
+      <pose>0 0 0 0 0 0</pose>
+      <link name="scree">
+        <pose>0.6485685000000005 0.0 -0.25 0 0 0</pose>
+        <collision name="scree_collision">
+          <geometry>
+            <box>
+              <size>10.702863 16.0 0.5</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="scree_visual">
+          <geometry>
+            <box>
+              <size>10.702863 16.0 0.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <pbr>
+              <metal>
+                <albedo_map>../textures/scree.png</albedo_map>
+                <roughness>0.9</roughness>
+                <metalness>0.0</metalness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+      <link name="snow">
+        <pose>18.0 0.0 -0.25 0 0 0</pose>
+        <collision name="snow_collision">
+          <geometry>
+            <box>
+              <size>24.0 16.0 0.5</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="snow_visual">
+          <geometry>
+            <box>
+              <size>24.0 16.0 0.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <pbr>
+              <metal>
+                <albedo_map>../textures/snow.png</albedo_map>
+                <roughness>0.9</roughness>
+                <metalness>0.0</metalness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+      <link name="drift">
+        <pose>11.0 0.0 0.30625 0 0 0</pose>
+        <collision name="drift_collision">
+          <geometry>
+            <box>
+              <size>1.2 3.0 0.6125</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="drift_visual">
+          <geometry>
+            <box>
+              <size>1.2 3.0 0.6125</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <pbr>
+              <metal>
+                <albedo_map>../textures/snow.png</albedo_map>
+                <roughness>0.9</roughness>
+                <metalness>0.0</metalness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <!--
+  GATE 4, THE REAL RISK
+  Textured scree out to 6.0 m, then textureless snow.
+  A drift 0.613 m high at 11 m, which is over
+  the obstacle claim and is hidden under featureless albedo.
+  PASS means confidence collapses over the snow and the vehicle
+  slows or stops. FAIL means it reports confident wrong depth and
+  keeps its speed. A stack that treats unknown as free space will
+  drive into this at full speed, and it will do it in the field
+  rather than here.
+  The mast blind zone is 0.811 m, so the drift is never
+  resolved by driving closer. It has to be handled as unknown.
+  -->
+  </world>
+</sdf>

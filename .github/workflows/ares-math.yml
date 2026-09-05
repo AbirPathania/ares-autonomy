@@ -1,4 +1,4 @@
-name: phase 1 and 2 gates
+name: phase 0 to 3 gates
 
 # Build spec section 12: every table in section 03 reproduced to 1e-9, and
 # the symbolic check passes. ares_math has no ROS dependency, so this runs
@@ -27,7 +27,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ./ares_math
-          pip install pytest hypothesis sympy ruff
+          pip install pytest hypothesis sympy ruff opencv-python-headless
 
       - name: The golden file still matches the document
         run: python tools/check_golden.py
@@ -41,8 +41,14 @@ jobs:
           git diff --exit-code ares_description/urdf/ares_g.urdf.xacro \
             || (echo "the URDF is stale, run tools/generate_urdf.py and commit it" && exit 1)
 
+      - name: The worlds are what constants.py currently produces
+        run: |
+          python tools/generate_worlds.py
+          git diff --exit-code ares_sim/worlds ares_sim/textures \
+            || (echo "the worlds are stale, run tools/generate_worlds.py and commit it" && exit 1)
+
       - name: Test suite
         run: pytest -q
 
       - name: Lint
-        run: ruff check ares_math ares_description tools
+        run: ruff check ares_math ares_description ares_sim eval tools
