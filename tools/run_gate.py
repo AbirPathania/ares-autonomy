@@ -227,19 +227,42 @@ def gate_three(runner, model):
     expected_pass = seen_from > stop
 
     trench_x = 6.0
+
+    # "Stopped somewhere before the trench" is not a criterion. A rover that
+    # halts on the start line for a phantom obstacle satisfies it, and that
+    # is how a gate becomes decorative. It has to APPROACH the trench and
+    # stop near it: close enough that the trench is what stopped it, far
+    # enough that it did not fall in.
+    approach_window = 3.0 * stop
+    travelled = 0.0
+    if runner.odom:
+        travelled = max(x for _, x, _ in runner.odom) - min(
+            x for _, x, _ in runner.odom
+        )
+
     if runner.stopped_at is None:
         stopped = "never stopped"
         detected = False
+    elif travelled < trench_x / 3.0:
+        stopped = (
+            f"stopped at x = {runner.stopped_at:.2f} m after only "
+            f"{travelled:.2f} m of travel, which is not an approach"
+        )
+        detected = False
     else:
         stopped = f"stopped at x = {runner.stopped_at:.2f} m"
-        detected = runner.stopped_at < trench_x
+        detected = trench_x - approach_window <= runner.stopped_at <= trench_x
 
     verdict = detected == expected_pass
     return verdict, (
         f"mast at {height} m sees the floor from {seen_from:.3f} m, needs "
         f"{stop:.3f} m to stop, so it should "
-        f"{'STOP IN TIME' if expected_pass else 'FAIL TO STOP'}. "
-        f"It {stopped}, which is {'correct' if verdict else 'WRONG'}"
+        f"{'STOP IN TIME' if expected_pass else 'FAIL TO STOP'}.\n"
+        f"  Detection window is x in "
+        f"[{trench_x - approach_window:.2f}, {trench_x:.2f}] m after at "
+        f"least {trench_x / 3.0:.2f} m of approach.\n"
+        f"  It {stopped}, travelling {travelled:.2f} m, which is "
+        f"{'correct' if verdict else 'WRONG'}"
     )
 
 

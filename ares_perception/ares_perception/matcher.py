@@ -139,7 +139,17 @@ class StereoMatcher:
         confidence = self._confidence(
             left_gray, right_gray, disparity, valid, texture_floor
         )
+
+        # Nothing closer than the matcher can actually resolve. A disparity
+        # at the top of the search range is the floor of the search, not a
+        # measurement of something very close, and publishing it put a
+        # phantom obstacle four centimetres in front of the bumper and
+        # stopped the vehicle on the start line. Z_min = f*B/d_max, section
+        # 03.2, and it is the same number the deck unit exists because of.
+        too_close = depth < self.minimum_range
         depth = np.where(confidence > 0.0, depth, np.nan)
+        depth = np.where(too_close, np.nan, depth)
+        confidence = np.where(too_close, 0.0, confidence)
         return depth, confidence, np.where(valid, disparity, np.nan)
 
     def _confidence(self, left_gray, right_gray, disparity, valid, texture_floor):

@@ -197,3 +197,40 @@ def test_the_minimum_range_survives_a_change_of_resolution():
     assert half.minimum_range == pytest.approx(full.minimum_range, rel=1e-9)
     # And it is the number section 03.2 prints for a 0.20 m baseline.
     assert full.minimum_range == pytest.approx(0.6666666666666666, rel=1e-9)
+
+
+def test_the_matcher_publishes_nothing_closer_than_it_can_resolve():
+    """A disparity at the top of the search range is the floor of the search,
+    not a measurement of something very close.
+
+    Publishing it put a phantom obstacle four centimetres in front of the
+    bumper and stopped the vehicle on the start line, while the gate scored
+    that as having detected a trench six metres away.
+    """
+    import numpy as np
+
+    from ares_perception.matcher import Intrinsics, StereoMatcher
+
+    width, height = 240, 136
+    f = focal_px(width, CAMERA.hfov_deg)
+    k = Intrinsics(
+        fx=f,
+        fy=f,
+        cx=width / 2.0,
+        cy=height / 2.0,
+        width=width,
+        height=height,
+        baseline=SENSORS.mast_baseline,
+    )
+    matcher = StereoMatcher(k)
+
+    # Two images that will match at large disparity everywhere: a shifted
+    # random pattern, shifted by more than the search can honestly resolve.
+    rng = np.random.default_rng(0)
+    left = rng.integers(0, 255, size=(height, width), dtype=np.uint8)
+    right = np.roll(left, matcher.max_disparity - 2, axis=1)
+
+    depth, confidence, _ = matcher(left, right)
+    resolved = np.isfinite(depth)
+    assert not np.any(depth[resolved] < matcher.minimum_range)
+    assert np.all(confidence[depth < matcher.minimum_range] == 0.0)
