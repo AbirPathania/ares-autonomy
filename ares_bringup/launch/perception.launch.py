@@ -71,7 +71,9 @@ def generate_launch_description():
             Node(
                 package="ares_perception",
                 executable="traversability_node",
-                parameters=[{"unit": "mast_cam", "use_sim_time": True}],
+                parameters=[
+                    {"units": ["mast_cam", "deck_cam"], "use_sim_time": True}
+                ],
                 output="screen",
             ),
             # Nothing else publishes /cmd_vel. Planners and operators publish

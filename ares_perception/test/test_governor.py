@@ -11,7 +11,7 @@ a snowdrift at full speed.
 import numpy as np
 import pytest
 
-from ares_math.constants import LIMITS, TRENCH
+from ares_math.constants import CHASSIS, LIMITS, TRENCH
 from ares_math.safety import max_speed_for_range, stopping_distance
 from ares_perception.governor import (
     PLANNING_HORIZON_FACTOR,
@@ -21,6 +21,10 @@ from ares_perception.governor import (
 from ares_perception.traversability import OBSTACLE, TRAVERSABLE, UNKNOWN, GridSpec
 
 SPEC = GridSpec(x_min=0.0, x_max=12.0, y_min=-3.0, y_max=3.0)
+
+# Ranges out of the governor are measured ahead of the front of the vehicle,
+# not from the datum at the middle axle.
+FRONT = CHASSIS.axle_pitch_front + CHASSIS.rolling_radius
 
 
 def grid(fill=UNKNOWN):
@@ -55,7 +59,7 @@ def test_a_short_trusted_range_caps_the_speed():
     same equation that turns mast height into 4 km/h, from the range the
     perception actually decided out to.
     """
-    reach = 0.8
+    reach = 0.8 + FRONT
     limit = speed_limit(clear_to(grid(), reach), SPEC)
     expected = max_speed_for_range(
         limit.trusted_range / PLANNING_HORIZON_FACTOR,
@@ -77,9 +81,9 @@ def test_five_metres_of_horizon_buys_the_full_autonomous_speed():
     The governor is built so that 5 m of trusted range and 4 km/h coincide.
     If that stops being true, either the factor or the document moved.
     """
-    at_five = speed_limit(clear_to(grid(), 5.0), SPEC)
+    at_five = speed_limit(clear_to(grid(), 5.0 + FRONT), SPEC)
     assert at_five.kmh == pytest.approx(4.0, abs=0.05)
-    assert speed_limit(clear_to(grid(), 6.0), SPEC).speed == pytest.approx(
+    assert speed_limit(clear_to(grid(), 6.0 + FRONT), SPEC).speed == pytest.approx(
         LIMITS.v_autonomous
     )
 
@@ -88,7 +92,7 @@ def test_the_horizon_requirement_degrades_smoothly():
     """No cliff. A vehicle that jumps between full speed and stopped is
     harder to plan around than one that eases off."""
     speeds = [
-        speed_limit(clear_to(grid(), float(r)), SPEC).speed
+        speed_limit(clear_to(grid(), float(r) + FRONT), SPEC).speed
         for r in (1.0, 2.0, 3.0, 4.0, 5.0)
     ]
     assert speeds == sorted(speeds)
@@ -97,7 +101,7 @@ def test_the_horizon_requirement_degrades_smoothly():
 
 def test_the_speed_always_stops_inside_the_trusted_range():
     """Swept, because this is the property that has to hold everywhere."""
-    for reach in np.arange(0.5, 11.0, 0.25):
+    for reach in np.arange(0.5 + FRONT, 11.0, 0.25):
         limit = speed_limit(clear_to(grid(), float(reach)), SPEC)
         needed = stopping_distance(
             limit.speed, LIMITS.decel, LIMITS.latency, LIMITS.safety_factor
@@ -111,8 +115,17 @@ def test_the_speed_always_stops_inside_the_trusted_range():
 def test_unknown_ground_beyond_a_point_shortens_the_range():
     state = clear_to(grid(), 4.0)
     reach, decided = trusted_range(state, SPEC)
-    assert reach == pytest.approx(4.0, abs=SPEC.cell * 1.5)
+    assert reach == pytest.approx(4.0 - FRONT, abs=SPEC.cell * 1.5)
     assert decided < 0.6
+
+
+def test_the_range_is_measured_from_the_bumper_not_the_datum():
+    """The datum is the middle axle. A stopping distance measured from there
+    lets the front wheels reach the hazard while the arithmetic still says
+    there is room."""
+    reach, _ = trusted_range(clear_to(grid(), 5.0), SPEC)
+    assert reach == pytest.approx(5.0 - FRONT, abs=SPEC.cell * 1.5)
+    assert FRONT == pytest.approx(0.385, abs=1e-9)
 
 
 def test_snow_that_reads_as_unknown_slows_the_vehicle_down():
@@ -122,7 +135,7 @@ def test_snow_that_reads_as_unknown_slows_the_vehicle_down():
     vehicle must slow, and it must say that depth is the reason rather than
     an obstacle, because there is no obstacle.
     """
-    state = clear_to(grid(UNKNOWN), 3.0)
+    state = clear_to(grid(UNKNOWN), 3.0 + FRONT)
     limit = speed_limit(state, SPEC)
     assert 0.0 < limit.speed < LIMITS.v_autonomous
     assert limit.kmh == pytest.approx(2.90, abs=0.05)
@@ -133,11 +146,11 @@ def test_snow_that_reads_as_unknown_slows_the_vehicle_down():
 def test_an_obstacle_binds_before_the_range_does():
     state = clear_to(grid(), 12.0)
     xs, _ = SPEC.centres()
-    near = int(np.argmin(np.abs(xs - 1.0)))
+    near = int(np.argmin(np.abs(xs - (1.0 + FRONT))))
     state[near, :] = OBSTACLE
     limit = speed_limit(state, SPEC)
     assert "obstacle" in limit.reason
-    assert limit.limiting_band == pytest.approx(xs[near], abs=1e-9)
+    assert limit.limiting_band == pytest.approx(xs[near] - FRONT, abs=1e-9)
     assert limit.speed < LIMITS.v_autonomous
     assert stopping_distance(
         limit.speed, LIMITS.decel, LIMITS.latency, LIMITS.safety_factor
@@ -149,7 +162,7 @@ def test_an_obstacle_further_than_the_stopping_distance_does_not_slow_anything()
     reason to slow, and treating it as one would make the vehicle useless."""
     state = clear_to(grid(), 12.0)
     xs, _ = SPEC.centres()
-    state[int(np.argmin(np.abs(xs - 3.0))), :] = OBSTACLE
+    state[int(np.argmin(np.abs(xs - (3.0 + FRONT)))), :] = OBSTACLE
     assert speed_limit(state, SPEC).speed == pytest.approx(LIMITS.v_autonomous)
 
 
@@ -193,7 +206,11 @@ def test_a_single_unresolved_cell_does_not_stop_the_vehicle():
 
 
 def test_the_reason_is_always_populated():
-    for state in (grid(UNKNOWN), clear_to(grid(), 3.0), clear_to(grid(), 12.0)):
+    for state in (
+        grid(UNKNOWN),
+        clear_to(grid(), 3.0 + FRONT),
+        clear_to(grid(), 12.0),
+    ):
         limit = speed_limit(state, SPEC)
         assert limit.reason
         assert "trusted_range" in limit.as_dict()

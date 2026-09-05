@@ -44,12 +44,18 @@ class TraversabilityNode(Node):
     def __init__(self):
         super().__init__("traversability_node")
 
-        self.declare_parameter("unit", "mast_cam")
+        # Both units, fused. Section 04: this is a coverage scheme, not a
+        # redundancy scheme. The mast unit is blind inside 0.81 m and the deck
+        # unit exists to fill exactly that, so a grid built from the mast
+        # alone is unknown right in front of the wheels and the vehicle stops
+        # for its own blind spot.
+        self.declare_parameter("units", ["mast_cam", "deck_cam"])
         self.declare_parameter("x_max", 20.0)
         self.declare_parameter("half_width", 8.0)
         self.declare_parameter("confidence_floor", 0.5)
 
-        unit = self.get_parameter("unit").value
+        units = list(self.get_parameter("units").value)
+        self.clouds = {}
         self.spec = GridSpec(
             x_min=0.0,
             x_max=float(self.get_parameter("x_max").value),
@@ -69,9 +75,13 @@ class TraversabilityNode(Node):
         self.tf_listener = TransformListener(self.tf_buffer, self)
         self.warned_about_tf = False
 
-        self.create_subscription(
-            PointCloud2, f"/{unit}/points", self.on_cloud, qos_profile=SENSOR_QOS
-        )
+        for unit in units:
+            self.create_subscription(
+                PointCloud2,
+                f"/{unit}/points",
+                lambda msg, name=unit: self.on_cloud(msg, name),
+                qos_profile=SENSOR_QOS,
+            )
 
         self.grid_pub = self.create_publisher(Image, "/traversability", SENSOR_QOS)
         self.limit_pub = self.create_publisher(TwistStamped, "/speed_limit", 10)
@@ -82,23 +92,28 @@ class TraversabilityNode(Node):
 
         self.last_reason = None
         self.get_logger().info(
-            f"traversability_node up. Grid {self.spec.shape[0]} by "
-            f"{self.spec.shape[1]} at {self.spec.cell * 1000:.0f} mm cells, "
-            f"ceiling {LIMITS.v_autonomous * 3.6:.1f} km/h."
+            f"traversability_node up on {', '.join(units)}. Grid "
+            f"{self.spec.shape[0]} by {self.spec.shape[1]} at "
+            f"{self.spec.cell * 1000:.0f} mm cells, ceiling "
+            f"{LIMITS.v_autonomous * 3.6:.1f} km/h."
         )
 
-    def on_cloud(self, msg):
+    def on_cloud(self, msg, unit):
         points = _read_xyz(msg)
         if points.size:
             points = self.to_base_link(points, msg.header)
         if points is None:
             self.publish_limit(msg.header, None)
             return
-        if points.size == 0:
+
+        self.clouds[unit] = points
+        fused = [c for c in self.clouds.values() if c is not None and c.size]
+        if not fused:
             # No points is not empty ground. It is no information, and the
             # governor treats it as such.
             self.publish_limit(msg.header, None)
             return
+        points = np.concatenate(fused, axis=0)
 
         state, surface, _ = estimate(
             points, spec=self.spec, confidence_floor=self.confidence_floor

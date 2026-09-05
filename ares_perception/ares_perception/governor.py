@@ -29,7 +29,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from ares_math.constants import LIMITS
+from ares_math.constants import CHASSIS, LIMITS
 from ares_math.safety import max_speed_for_range, stopping_distance
 
 from .traversability import OBSTACLE, UNKNOWN
@@ -107,10 +107,15 @@ def trusted_range(state, spec, corridor_half_width=None, decided_fraction=DECIDE
     grid's extent and not the furthest returned point, is what the vehicle
     may plan against.
 
-    Returns (range, fraction decided in the band that stopped it).
-    """
-    from ares_math.constants import CHASSIS
+    Measured AHEAD OF THE FRONT OF THE VEHICLE, not from the datum. The datum
+    is the middle axle, and a stopping distance measured from there would let
+    the front wheels reach the hazard while the arithmetic still said there
+    was room. It also means an all-unknown grid returns zero, which is the
+    answer that stops the vehicle rather than one that creeps.
 
+    Returns (range ahead of the bumper, fraction decided in the band that
+    stopped it).
+    """
     if corridor_half_width is None:
         corridor_half_width = CORRIDOR_WIDTHS * CHASSIS.track / 2.0
 
@@ -119,12 +124,19 @@ def trusted_range(state, spec, corridor_half_width=None, decided_fraction=DECIDE
     if not corridor.any():
         return 0.0, 0.0
 
+    # Start at the front of the vehicle, not at the datum. The datum is the
+    # middle axle, so the bands between it and the front bumper are the rover
+    # itself. They are unmeasured by construction, and walking from zero made
+    # the vehicle stop permanently because the first half metre of "unknown
+    # ground ahead" was its own front wheels.
+    start = CHASSIS.axle_pitch_front + CHASSIS.rolling_radius
+
     run_start = None
     minimum_run = _minimum_unknown_run()
     worst = 1.0
 
     for i, x in enumerate(xs):
-        if x < 0:
+        if x < start:
             continue
         band = state[i, corridor]
         if band.size == 0:
@@ -144,9 +156,9 @@ def trusted_range(state, spec, corridor_half_width=None, decided_fraction=DECIDE
         # One sparse band is noise. A contiguous unknown region as long as
         # the governing trench is a place the trench could be hiding.
         if x - run_start >= minimum_run:
-            return max(run_start - spec.cell, 0.0), worst
+            return max(run_start - spec.cell - start, 0.0), worst
 
-    return float(xs[-1]), 1.0
+    return max(float(xs[-1]) - start, 0.0), 1.0
 
 
 def speed_limit(
@@ -188,6 +200,13 @@ def speed_limit(
     #   planning   it must see far enough ahead to steer rather than only to
     #              stop, and that horizon grows with speed
     blocked = _nearest_obstacle(state, spec, corridor_half_width)
+    if blocked is not None and blocked <= 0.0:
+        return SpeedLimit(
+            speed=0.0,
+            trusted_range=reach,
+            reason="obstacle against the bumper, stop",
+            limiting_band=0.0,
+        )
     limiting = min(reach, blocked) if blocked is not None else reach
 
     stop_limited = max_speed_for_range(limiting, decel, latency, safety_factor)
@@ -222,17 +241,18 @@ def speed_limit(
 
 
 def _nearest_obstacle(state, spec, corridor_half_width):
-    from ares_math.constants import CHASSIS
-
     if corridor_half_width is None:
         corridor_half_width = CORRIDOR_WIDTHS * CHASSIS.track / 2.0
     xs, ys = spec.centres()
     corridor = np.abs(ys) <= corridor_half_width
+    start = CHASSIS.axle_pitch_front + CHASSIS.rolling_radius
     for i, x in enumerate(xs):
-        if x < 0:
+        if x < start:
             continue
         if np.any(state[i, corridor] == OBSTACLE):
-            return float(x)
+            # Also ahead of the bumper, so it compares like for like with a
+            # stopping distance.
+            return float(x) - start
     return None
 
 
