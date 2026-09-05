@@ -144,14 +144,18 @@ class StereoNode(Node):
         )
 
     def on_left(self, msg):
-        self.handle(self.sync.push_left(_stamp(msg), msg))
+        self.on_pair(self.sync.push_left(_stamp(msg), msg))
 
     def on_right(self, msg):
-        self.handle(self.sync.push_right(_stamp(msg), msg))
+        self.on_pair(self.sync.push_right(_stamp(msg), msg))
 
     # -------------------------------------------------------------- matching
 
-    def handle(self, pair):
+    # Not called handle. rclpy.node.Node.handle is a property rclpy uses
+    # internally, and shadowing it makes Node.__init__ fail with
+    # "'method' object does not support the context manager protocol",
+    # which names neither the attribute nor this file.
+    def on_pair(self, pair):
         if pair is None:
             return
         stamp, left_msg, right_msg, skew = pair
