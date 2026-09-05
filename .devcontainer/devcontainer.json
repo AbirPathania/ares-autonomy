@@ -18,5 +18,23 @@
     "ROS_DOMAIN_ID": "42"
   },
   "postCreateCommand": "pip install -e ./ares_math && colcon build --symlink-install",
-  "hostRequirements": { "cpus": 8 }
+
+  // Section 06.4 asks for 8 or 16 cores, because software rendered Gazebo is
+  // CPU bound. This account's Codespaces plan offers 2 and 4 core machines
+  // only, and asking for 8 returns an empty machine list rather than a
+  // smaller machine, so nothing starts at all.
+  //
+  // 4 is therefore the floor that is actually obtainable. This is a
+  // compromise, not a correction to the spec. What it costs:
+  //
+  //   - run the simulation headless, gz sim -s, and view through RViz. The
+  //     Gazebo GUI on four software rendered cores is not worth the cycles.
+  //   - keep simulated camera resolution at 640 by 360, as section 06.2 says.
+  //   - expect a real time factor below 1. Every gate in section 10 is a
+  //     geometric or logical assertion rather than a timing one, so a slow
+  //     simulation still answers them. Anything that becomes a latency claim
+  //     needs real compute, not this.
+  //
+  // Raise this back to 8 as soon as a larger machine is available.
+  "hostRequirements": { "cpus": 4, "memory": "16gb", "storage": "32gb" }
 }
