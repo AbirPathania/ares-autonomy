@@ -80,9 +80,19 @@ class StereoMatcher:
 
     def __init__(self, intrinsics, max_disparity=None, block=7):
         self.k = intrinsics
-        self.max_disparity = int(max_disparity or CAMERA.max_disparity_px)
+        # The disparity search scales with image width, and it has to.
+        #
+        # CAMERA.max_disparity_px is 192 for the 1280 wide working case, and
+        # what it really fixes is the closest range the matcher can resolve:
+        # Z_min = f*B/d_max. Halve the width and f halves too, so keeping
+        # d_max at 192 does not see any closer, it just searches twice as far
+        # for nothing. On four cores with two matchers running that surplus
+        # is enough memory to get a node killed, which is how this was found.
+        if max_disparity is None:
+            scale = intrinsics.width / CAMERA.width_px
+            max_disparity = CAMERA.max_disparity_px * scale
         # SGBM needs a multiple of 16.
-        self.max_disparity = int(np.ceil(self.max_disparity / 16.0) * 16)
+        self.max_disparity = max(16, int(np.ceil(max_disparity / 16.0) * 16))
         self.block = block
         channels = 1
         self.left = cv2.StereoSGBM_create(
@@ -100,6 +110,15 @@ class StereoMatcher:
         self.right = (
             cv2.ximgproc_createRightMatcher(self.left) if _has_ximgproc() else None
         )
+
+    @property
+    def minimum_range(self):
+        """Closest range this matcher can resolve, metres.
+
+        The invariant the disparity scaling protects. It should not change
+        when the image is resized.
+        """
+        return self.k.fx * self.k.baseline / self.max_disparity
 
     def __call__(self, left_image, right_image, texture_floor=8.0):
         """Returns (depth, confidence, disparity), all (H, W) float arrays.

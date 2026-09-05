@@ -155,3 +155,45 @@ def test_a_ten_microsecond_hardware_trigger_clears_the_worst_case():
     assert budget == pytest.approx(3.90625e-5, rel=1e-4)
     assert budget > 3 * 10e-6, "a 10 us hardware trigger clears it"
     assert budget < 1e-3, "a 1 ms software timestamp match does not"
+
+
+# --------------------------------------------------------------------------
+# The disparity search scales with the image, so the geometry does not.
+# --------------------------------------------------------------------------
+
+
+def test_the_minimum_range_survives_a_change_of_resolution():
+    """Section 03.2's minimum range is a property of the geometry, not of how
+    many pixels you happen to render.
+
+    The simulator renders at 640 by 360 and the real unit at 1280 by 720. If
+    the disparity search did not scale with the width, the smaller image would
+    search twice as far as it needs to, resolve nothing closer for it, and
+    spend the memory anyway. Two matchers doing that on four cores is enough
+    to get a node killed.
+    """
+    from ares_math.constants import CAMERA
+    from ares_perception.matcher import Intrinsics, StereoMatcher
+
+    def make(width, height):
+        f = focal_px(width, CAMERA.hfov_deg)
+        return StereoMatcher(
+            Intrinsics(
+                fx=f,
+                fy=f,
+                cx=width / 2.0,
+                cy=height / 2.0,
+                width=width,
+                height=height,
+                baseline=SENSORS.mast_baseline,
+            )
+        )
+
+    full = make(CAMERA.width_px, CAMERA.height_px)
+    half = make(CAMERA.sim_width_px, CAMERA.sim_height_px)
+
+    assert full.max_disparity == CAMERA.max_disparity_px
+    assert half.max_disparity == CAMERA.max_disparity_px // 2
+    assert half.minimum_range == pytest.approx(full.minimum_range, rel=1e-9)
+    # And it is the number section 03.2 prints for a 0.20 m baseline.
+    assert full.minimum_range == pytest.approx(0.6666666666666666, rel=1e-9)
