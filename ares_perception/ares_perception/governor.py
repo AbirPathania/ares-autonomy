@@ -46,6 +46,31 @@ CORRIDOR_WIDTHS = 1.5
 # normal, and demanding perfection would stop the vehicle permanently.
 DECIDED_FRACTION = 0.6
 
+# How much trusted range the vehicle needs beyond its own stopping distance
+# before it is planning rather than merely reacting.
+#
+# Section 03.2: "At 4 km/h you need trustworthy depth to about 1.5 m to stop
+# safely, and to roughly 5 to 8 m to plan a decent path." This factor is the
+# ratio of those two numbers, and it is the document's engineering judgement
+# rather than a derivation, which is why it is named and commented here
+# instead of buried in an expression.
+#
+# It matters because stopping distance alone gives a governor that is
+# technically safe and practically useless. At 4 km/h the vehicle stops in
+# 1.43 m, so a stop-only rule would happily drive at full speed into a bank
+# of fog it can see 2 m into, arrive, stop, and be stuck. Requiring the
+# horizon to scale with speed is what makes it slow down and keep planning.
+PLANNING_HORIZON_FACTOR = 3.5
+
+# An unknown patch smaller than the governing obstacle cannot hide the
+# governing obstacle, so it does not shorten the trusted range. Derived from
+# section 02's trench rather than chosen, which is also what stops a few
+# scattered unresolved cells from parking the vehicle.
+def _minimum_unknown_run():
+    from ares_math.constants import TRENCH
+
+    return TRENCH.width
+
 
 @dataclass(frozen=True)
 class SpeedLimit:
@@ -94,6 +119,10 @@ def trusted_range(state, spec, corridor_half_width=None, decided_fraction=DECIDE
     if not corridor.any():
         return 0.0, 0.0
 
+    run_start = None
+    minimum_run = _minimum_unknown_run()
+    worst = 1.0
+
     for i, x in enumerate(xs):
         if x < 0:
             continue
@@ -101,8 +130,21 @@ def trusted_range(state, spec, corridor_half_width=None, decided_fraction=DECIDE
         if band.size == 0:
             continue
         decided = float(np.mean(band != UNKNOWN))
-        if decided < decided_fraction:
-            return max(x - spec.cell, 0.0), decided
+
+        if decided >= decided_fraction:
+            run_start = None
+            continue
+
+        if run_start is None:
+            run_start = x
+            worst = decided
+        else:
+            worst = min(worst, decided)
+
+        # One sparse band is noise. A contiguous unknown region as long as
+        # the governing trench is a place the trench could be hiding.
+        if x - run_start >= minimum_run:
+            return max(run_start - spec.cell, 0.0), worst
 
     return float(xs[-1]), 1.0
 
@@ -139,11 +181,20 @@ def speed_limit(
             limiting_band=0.0,
         )
 
-    # An obstacle inside the trusted range binds before the range does.
+    # Two terms, and the vehicle obeys whichever is lower.
+    #
+    #   stopping   it must halt before the nearest thing it cannot pass, or
+    #              before the edge of what it has measured
+    #   planning   it must see far enough ahead to steer rather than only to
+    #              stop, and that horizon grows with speed
     blocked = _nearest_obstacle(state, spec, corridor_half_width)
     limiting = min(reach, blocked) if blocked is not None else reach
 
-    allowed = max_speed_for_range(limiting, decel, latency, safety_factor)
+    stop_limited = max_speed_for_range(limiting, decel, latency, safety_factor)
+    plan_limited = max_speed_for_range(
+        reach / PLANNING_HORIZON_FACTOR, decel, latency, safety_factor
+    )
+    allowed = min(ceiling, stop_limited, plan_limited)
 
     if allowed >= ceiling:
         return SpeedLimit(
@@ -153,12 +204,17 @@ def speed_limit(
             limiting_band=limiting,
         )
 
-    if blocked is not None and blocked <= reach:
+    if stop_limited <= plan_limited and blocked is not None and blocked <= reach:
         reason = f"obstacle at {blocked:.2f} m"
-    else:
+    elif stop_limited <= plan_limited:
         reason = (
             f"depth not trusted beyond {reach:.2f} m, "
             f"{decided * 100:.0f} per cent of that band decided"
+        )
+    else:
+        reason = (
+            f"horizon only {reach:.2f} m, too short to plan at "
+            f"{ceiling * 3.6:.1f} km/h"
         )
     return SpeedLimit(
         speed=allowed, trusted_range=reach, reason=reason, limiting_band=limiting
