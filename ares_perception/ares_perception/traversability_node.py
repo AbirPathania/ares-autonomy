@@ -31,7 +31,7 @@ from tf2_ros import Buffer, TransformListener
 from ares_math.constants import CAMERA, CHASSIS, LIMITS, SENSORS
 from ares_math.optics import focal_px
 
-from .governor import speed_limit
+from .governor import CORRIDOR_WIDTHS, speed_limit
 from .traversability import (
     STATE_NAMES,
     GridSpec,
@@ -174,12 +174,29 @@ class TraversabilityNode(Node):
         obstacle = float(np.mean(state == 2))
         ahead = points[points[:, 0] > 0]
         reach = float(np.max(ahead[:, 0])) if ahead.size else 0.0
+        nearest = float(np.min(ahead[:, 0])) if ahead.size else 0.0
         self.get_logger().info(
-            f"{len(points)} points, furthest {reach:.2f} m. Grid: "
+            f"{len(points)} points, {nearest:.2f} to {reach:.2f} m. Grid: "
             f"{observed * 100:.1f}% decided, {traversable * 100:.1f}% "
             f"traversable, {obstacle * 100:.1f}% obstacle. Trusted range "
             f"{limit.trusted_range:.2f} m, allowing {limit.kmh:.2f} km/h "
             f"({limit.reason})"
+        )
+        # Corridor coverage, band by band. "Trusted range 0" is a conclusion,
+        # not a diagnosis, and this is the row of numbers that distinguishes
+        # a camera that sees nothing from a corridor defined in the wrong
+        # place from a density threshold nothing meets.
+        xs, ys = self.spec.centres()
+        corridor = np.abs(ys) <= CORRIDOR_WIDTHS * CHASSIS.track / 2.0
+        profile = []
+        for i, x in enumerate(xs):
+            if x < 0.3 or x > 4.0 or i % 4:
+                continue
+            band = state[i, corridor]
+            profile.append(f"{x:.1f}:{np.mean(band != 0) * 100:.0f}%")
+        self.get_logger().info(
+            f"corridor is {int(corridor.sum())} cells wide, decided by range: "
+            + " ".join(profile)
         )
 
     def to_base_link(self, points, header):
