@@ -107,6 +107,18 @@ class RockerBogie:
 
 
 @dataclass(frozen=True)
+class Mobility:
+    """What the vehicle can drive over. Build spec section 10, gate 2.
+
+    max_step is the obstacle claim the step_field world exists to test. It is
+    roughly 1.3 wheel diameters, which is the classic rocker-bogie figure and
+    the reason the linkage is worth its mass.
+    """
+
+    max_step: float = 0.245
+
+
+@dataclass(frozen=True)
 class LinkMasses:
     """Per link mass for the simulation model, kilograms.
 
@@ -136,6 +148,7 @@ LIMITS = Limits()
 CAMERA = Camera()
 TRENCH = GoverningObstacle()
 LINK_MASS = LinkMasses()
+MOBILITY = Mobility()
 BOGIE = RockerBogie()
 
 # Axle station X positions in the base_link frame, front to rear.

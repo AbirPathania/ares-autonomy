@@ -14,12 +14,13 @@ the nose down. Rocker and bogie angles are relative to their parent, which
 is the same convention the URDF joints use.
 """
 
+import math
 from dataclasses import dataclass
 
 import numpy as np
 from scipy.optimize import least_squares
 
-from .constants import BOGIE, CHASSIS
+from .constants import BOGIE, CHASSIS, LIMITS, LINK_MASS, SENSORS
 from .units import DEG, M, units
 
 __all__ = [
@@ -38,6 +39,9 @@ __all__ = [
     "cylinder_inertia",
     "rod_inertia",
     "rpy_matrix",
+    "centre_of_mass",
+    "static_tipover_angle",
+    "stability_limits",
 ]
 
 WHEEL_NAMES = ("front", "middle", "rear")
@@ -412,3 +416,91 @@ def rpy_matrix(roll, pitch, yaw=0.0):
     rather than reimplementing the convention and getting it 90 degrees out.
     """
     return _rpy(roll, pitch, yaw)
+
+
+# --------------------------------------------------------------------------
+# Static stability.
+#
+# The traversability estimator needs a maximum slope, and inventing one would
+# put a physical number outside constants.py. These derive it from the mass
+# distribution and the geometry that is already there.
+# --------------------------------------------------------------------------
+
+
+def centre_of_mass(pose=None):
+    """Mass weighted centroid of the vehicle in the body frame, metres.
+
+    Links are placed at their own centroids: the hull at the mid height of
+    its box, the rocker and bogie arms at the midpoint of the segments they
+    span, the wheels at their centres, the mast at its mid height and each
+    camera unit at its mount. Uses LINK_MASS, which is a declared model
+    assumption until H-3 gives a real breakdown.
+
+    Returns (x, y, z).
+    """
+    if pose is None:
+        pose = Pose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+    hull_centre_z = (CHASSIS.ground_clearance + CHASSIS.deck_z) / 2.0
+    mast_top = SENSORS.mast_height
+    items = [(LINK_MASS.hull, np.array([0.0, 0.0, hull_centre_z]))]
+
+    for side in ("left", "right"):
+        link = LINKAGE[side]
+        theta_r = pose.rocker_left if side == "left" else pose.rocker_right
+        theta_b = pose.bogie_left if side == "left" else pose.bogie_right
+        pts = link.points_in_body(theta_r, theta_b)
+        trunnion = np.array(link.trunnion)
+        items.append((LINK_MASS.rocker, (trunnion + pts["front"]) / 2.0))
+        items.append((LINK_MASS.bogie, (pts["middle"] + pts["rear"]) / 2.0))
+        for name in WHEEL_NAMES:
+            items.append((LINK_MASS.wheel, pts[name]))
+
+    items.append(
+        (LINK_MASS.mast, np.array([0.0, 0.0, (CHASSIS.deck_z + mast_top) / 2.0]))
+    )
+    items.append((LINK_MASS.camera_unit, np.array([0.0, 0.0, mast_top])))
+    items.append((LINK_MASS.camera_unit, np.array([0.0, 0.0, SENSORS.deck_height])))
+
+    total = sum(mass for mass, _ in items)
+    weighted = sum(mass * position for mass, position in items)
+    return tuple(float(v) for v in weighted / total)
+
+
+@units(None, (M, M))
+def static_tipover_angle(half_base, cog_height):
+    """Slope at which the centre of mass passes over the contact patch edge.
+
+        theta = atan(half_base / cog_height)
+
+    A rigid body on a slope tips when the vertical through its centre of mass
+    leaves the support polygon. Returns degrees.
+    """
+    if half_base <= 0 or cog_height <= 0:
+        raise ValueError("half_base and cog_height must be positive")
+    return math.degrees(math.atan(half_base / cog_height))
+
+
+def stability_limits():
+    """Lateral and longitudinal tipover angles, and the working slope limit.
+
+    The working limit divides the more restrictive of the two by the same
+    safety factor the stopping distance uses, because it is the same kind of
+    claim: how much margin to keep against a static geometric bound that
+    assumes rigid ground and no dynamics.
+
+    Returns a dict of degrees.
+    """
+    _, _, cog_z = centre_of_mass()
+    lateral = static_tipover_angle(CHASSIS.track / 2.0, cog_z)
+    forward = static_tipover_angle(CHASSIS.axle_pitch_front, cog_z)
+    backward = static_tipover_angle(CHASSIS.axle_pitch_rear, cog_z)
+    binding = min(lateral, forward, backward)
+    return {
+        "cog_height": cog_z,
+        "lateral": lateral,
+        "forward": forward,
+        "backward": backward,
+        "binding": binding,
+        "working": binding / LIMITS.safety_factor,
+    }

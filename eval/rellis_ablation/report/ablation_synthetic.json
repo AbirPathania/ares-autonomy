@@ -1,0 +1,913 @@
+[
+  {
+    "scene": "flat_textured",
+    "lidar": {
+      "true_traversable_called_traversable": 3071,
+      "true_traversable_called_obstacle": 0,
+      "true_traversable_called_unknown": 33729,
+      "true_obstacle_called_obstacle": 0,
+      "true_obstacle_called_traversable": 0,
+      "true_obstacle_called_unknown": 0,
+      "accuracy": 1.0,
+      "obstacle_recall": NaN,
+      "false_free_space_rate": NaN,
+      "unknown_rate": 0.9165489130434783
+    },
+    "stereo": {
+      "true_traversable_called_traversable": 5525,
+      "true_traversable_called_obstacle": 2,
+      "true_traversable_called_unknown": 31273,
+      "true_obstacle_called_obstacle": 0,
+      "true_obstacle_called_traversable": 0,
+      "true_obstacle_called_unknown": 0,
+      "accuracy": 0.9996381400398046,
+      "obstacle_recall": NaN,
+      "false_free_space_rate": NaN,
+      "unknown_rate": 0.8498097826086957
+    },
+    "lidar_by_range": {
+      "0-2 m": {
+        "true_traversable_called_traversable": 1009,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 711,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 1.0,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.41337209302325584
+      },
+      "2-4 m": {
+        "true_traversable_called_traversable": 1551,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 5185,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 1.0,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.7697446555819477
+      },
+      "4-6 m": {
+        "true_traversable_called_traversable": 448,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 7162,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 1.0,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.9411300919842313
+      },
+      "6-8 m": {
+        "true_traversable_called_traversable": 61,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 6767,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 1.0,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.9910661980082015
+      },
+      "8-12 m": {
+        "true_traversable_called_traversable": 2,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 13180,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 1.0,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.9998482779547868
+      },
+      "12-20 m": {
+        "true_traversable_called_traversable": 0,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 724,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": NaN,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 1.0
+      }
+    },
+    "stereo_by_range": {
+      "0-2 m": {
+        "true_traversable_called_traversable": 769,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 951,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 1.0,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.5529069767441861
+      },
+      "2-4 m": {
+        "true_traversable_called_traversable": 2049,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 4687,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 1.0,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.6958135391923991
+      },
+      "4-6 m": {
+        "true_traversable_called_traversable": 2020,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 5590,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 1.0,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.7345597897503285
+      },
+      "6-8 m": {
+        "true_traversable_called_traversable": 687,
+        "true_traversable_called_obstacle": 2,
+        "true_traversable_called_unknown": 6139,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 0.9970972423802612,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.8990919742237844
+      },
+      "8-12 m": {
+        "true_traversable_called_traversable": 0,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 13182,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": NaN,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 1.0
+      },
+      "12-20 m": {
+        "true_traversable_called_traversable": 0,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 724,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": NaN,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 1.0
+      }
+    },
+    "depth_bands": [
+      {
+        "low": 1.0,
+        "high": 2.0,
+        "count": 55711,
+        "bias": 0.006620743432488083,
+        "sigma": 0.008232245539132254,
+        "predicted_sigma": 0.008448204066755154,
+        "ratio": 0.9744373447993844
+      },
+      {
+        "low": 2.0,
+        "high": 3.0,
+        "count": 24104,
+        "bias": 0.013887690385258479,
+        "sigma": 0.021517799030174162,
+        "predicted_sigma": 0.023066947482582784,
+        "ratio": 0.9328412026091297
+      },
+      {
+        "low": 3.0,
+        "high": 5.0,
+        "count": 19243,
+        "bias": 0.03597725779079556,
+        "sigma": 0.0458344921503761,
+        "predicted_sigma": 0.057048457086929016,
+        "ratio": 0.8034308812337315
+      },
+      {
+        "low": 5.0,
+        "high": 7.0,
+        "count": 8490,
+        "bias": 0.06862725746854255,
+        "sigma": 0.108875561478877,
+        "predicted_sigma": 0.1355186391635035,
+        "ratio": 0.8033991645054701
+      },
+      {
+        "low": 7.0,
+        "high": 10.0,
+        "count": 3789,
+        "bias": 0.0734467967587951,
+        "sigma": 0.16089283965958184,
+        "predicted_sigma": 0.2404768278933723,
+        "ratio": 0.6690575598033167
+      }
+    ],
+    "confidence": {
+      "mean": 0.41222652792930603,
+      "fraction_trusted": 0.422578125,
+      "cells_unknown_stereo": 0.8498097826086957,
+      "cells_unknown_lidar": 0.9165489130434783
+    },
+    "accuracy_lost": 0.0003618599601954431,
+    "false_free_space_added": NaN
+  },
+  {
+    "scene": "step_field",
+    "lidar": {
+      "true_traversable_called_traversable": 2871,
+      "true_traversable_called_obstacle": 458,
+      "true_traversable_called_unknown": 20671,
+      "true_obstacle_called_obstacle": 69,
+      "true_obstacle_called_traversable": 0,
+      "true_obstacle_called_unknown": 12731,
+      "accuracy": 0.8652148322542672,
+      "obstacle_recall": 1.0,
+      "false_free_space_rate": 0.0,
+      "unknown_rate": 0.9076630434782609
+    },
+    "stereo": {
+      "true_traversable_called_traversable": 3485,
+      "true_traversable_called_obstacle": 1678,
+      "true_traversable_called_unknown": 18837,
+      "true_obstacle_called_obstacle": 0,
+      "true_obstacle_called_traversable": 0,
+      "true_obstacle_called_unknown": 12800,
+      "accuracy": 0.6749951578539609,
+      "obstacle_recall": NaN,
+      "false_free_space_rate": 0.0,
+      "unknown_rate": 0.8597010869565217
+    },
+    "lidar_by_range": {
+      "0-2 m": {
+        "true_traversable_called_traversable": 1009,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 711,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 1.0,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.41337209302325584
+      },
+      "2-4 m": {
+        "true_traversable_called_traversable": 1546,
+        "true_traversable_called_obstacle": 23,
+        "true_traversable_called_unknown": 5167,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 0.9853409815168898,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.7670724465558195
+      },
+      "4-6 m": {
+        "true_traversable_called_traversable": 261,
+        "true_traversable_called_obstacle": 335,
+        "true_traversable_called_unknown": 7014,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 0.43791946308724833,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.9216819973718791
+      },
+      "6-8 m": {
+        "true_traversable_called_traversable": 55,
+        "true_traversable_called_obstacle": 27,
+        "true_traversable_called_unknown": 6746,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 0.6707317073170732,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.9879906268306972
+      },
+      "8-12 m": {
+        "true_traversable_called_traversable": 0,
+        "true_traversable_called_obstacle": 73,
+        "true_traversable_called_unknown": 1033,
+        "true_obstacle_called_obstacle": 69,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 12007,
+        "accuracy": 0.4859154929577465,
+        "obstacle_recall": 1.0,
+        "false_free_space_rate": 0.0,
+        "unknown_rate": 0.9892277347898649
+      },
+      "12-20 m": {
+        "true_traversable_called_traversable": 0,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 0,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 724,
+        "accuracy": NaN,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": 0.0,
+        "unknown_rate": 1.0
+      }
+    },
+    "stereo_by_range": {
+      "0-2 m": {
+        "true_traversable_called_traversable": 683,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 1037,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 1.0,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.602906976744186
+      },
+      "2-4 m": {
+        "true_traversable_called_traversable": 1989,
+        "true_traversable_called_obstacle": 59,
+        "true_traversable_called_unknown": 4688,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 0.97119140625,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.6959619952494062
+      },
+      "4-6 m": {
+        "true_traversable_called_traversable": 611,
+        "true_traversable_called_obstacle": 1274,
+        "true_traversable_called_unknown": 5725,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 0.32413793103448274,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.7522996057818659
+      },
+      "6-8 m": {
+        "true_traversable_called_traversable": 201,
+        "true_traversable_called_obstacle": 344,
+        "true_traversable_called_unknown": 6283,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 0.3688073394495413,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.9201816051552432
+      },
+      "8-12 m": {
+        "true_traversable_called_traversable": 1,
+        "true_traversable_called_obstacle": 1,
+        "true_traversable_called_unknown": 1104,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 12076,
+        "accuracy": 0.5,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": 0.0,
+        "unknown_rate": 0.9998482779547868
+      },
+      "12-20 m": {
+        "true_traversable_called_traversable": 0,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 0,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 724,
+        "accuracy": NaN,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": 0.0,
+        "unknown_rate": 1.0
+      }
+    },
+    "depth_bands": [
+      {
+        "low": 1.0,
+        "high": 2.0,
+        "count": 52861,
+        "bias": 0.006756138729953427,
+        "sigma": 0.008664295412754892,
+        "predicted_sigma": 0.00858569021541462,
+        "ratio": 1.0091553731113132
+      },
+      {
+        "low": 2.0,
+        "high": 3.0,
+        "count": 24099,
+        "bias": 0.014839791202502941,
+        "sigma": 0.02164522869108944,
+        "predicted_sigma": 0.023073293334752297,
+        "ratio": 0.9381074637701612
+      },
+      {
+        "low": 3.0,
+        "high": 5.0,
+        "count": 24863,
+        "bias": 0.016374890073412224,
+        "sigma": 0.050261320846629966,
+        "predicted_sigma": 0.05820294481971668,
+        "ratio": 0.8635528838328395
+      },
+      {
+        "low": 5.0,
+        "high": 7.0,
+        "count": 6272,
+        "bias": 0.07928291515600752,
+        "sigma": 0.11640888006760566,
+        "predicted_sigma": 0.13548441661669444,
+        "ratio": 0.8592049401293411
+      },
+      {
+        "low": 7.0,
+        "high": 10.0,
+        "count": 6687,
+        "bias": 0.1619127396710491,
+        "sigma": 0.17440629049164694,
+        "predicted_sigma": 0.23001130781435006,
+        "ratio": 0.7582509405686096
+      }
+    ],
+    "confidence": {
+      "mean": 0.4066380560398102,
+      "fraction_trusted": 0.40772569444444445,
+      "cells_unknown_stereo": 0.8597010869565217,
+      "cells_unknown_lidar": 0.9076630434782609
+    },
+    "accuracy_lost": 0.1902196744003063,
+    "false_free_space_added": 0.0
+  },
+  {
+    "scene": "trench_field",
+    "lidar": {
+      "true_traversable_called_traversable": 2571,
+      "true_traversable_called_obstacle": 0,
+      "true_traversable_called_unknown": 31349,
+      "true_obstacle_called_obstacle": 248,
+      "true_obstacle_called_traversable": 179,
+      "true_obstacle_called_unknown": 2453,
+      "accuracy": 0.9402935290193463,
+      "obstacle_recall": 0.5807962529274004,
+      "false_free_space_rate": 0.06215277777777778,
+      "unknown_rate": 0.9185326086956521
+    },
+    "stereo": {
+      "true_traversable_called_traversable": 4527,
+      "true_traversable_called_obstacle": 0,
+      "true_traversable_called_unknown": 29393,
+      "true_obstacle_called_obstacle": 288,
+      "true_obstacle_called_traversable": 447,
+      "true_obstacle_called_unknown": 2145,
+      "accuracy": 0.9150513112884835,
+      "obstacle_recall": 0.39183673469387753,
+      "false_free_space_rate": 0.15520833333333334,
+      "unknown_rate": 0.8570108695652174
+    },
+    "lidar_by_range": {
+      "0-2 m": {
+        "true_traversable_called_traversable": 1009,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 711,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 1.0,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.41337209302325584
+      },
+      "2-4 m": {
+        "true_traversable_called_traversable": 1126,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 3962,
+        "true_obstacle_called_obstacle": 163,
+        "true_obstacle_called_traversable": 136,
+        "true_obstacle_called_unknown": 1349,
+        "accuracy": 0.9045614035087719,
+        "obstacle_recall": 0.5451505016722408,
+        "false_free_space_rate": 0.0825242718446602,
+        "unknown_rate": 0.7884501187648456
+      },
+      "4-6 m": {
+        "true_traversable_called_traversable": 373,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 6005,
+        "true_obstacle_called_obstacle": 85,
+        "true_obstacle_called_traversable": 43,
+        "true_obstacle_called_unknown": 1104,
+        "accuracy": 0.9141716566866267,
+        "obstacle_recall": 0.6640625,
+        "false_free_space_rate": 0.0349025974025974,
+        "unknown_rate": 0.9341655716162943
+      },
+      "6-8 m": {
+        "true_traversable_called_traversable": 61,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 6767,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 1.0,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.9910661980082015
+      },
+      "8-12 m": {
+        "true_traversable_called_traversable": 2,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 13180,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 1.0,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.9998482779547868
+      },
+      "12-20 m": {
+        "true_traversable_called_traversable": 0,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 724,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": NaN,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 1.0
+      }
+    },
+    "stereo_by_range": {
+      "0-2 m": {
+        "true_traversable_called_traversable": 726,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 994,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 1.0,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.577906976744186
+      },
+      "2-4 m": {
+        "true_traversable_called_traversable": 1309,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 3779,
+        "true_obstacle_called_obstacle": 198,
+        "true_obstacle_called_traversable": 359,
+        "true_obstacle_called_unknown": 1091,
+        "accuracy": 0.807609860664523,
+        "obstacle_recall": 0.35547576301615796,
+        "false_free_space_rate": 0.2178398058252427,
+        "unknown_rate": 0.7229809976247031
+      },
+      "4-6 m": {
+        "true_traversable_called_traversable": 1793,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 4585,
+        "true_obstacle_called_obstacle": 90,
+        "true_obstacle_called_traversable": 88,
+        "true_obstacle_called_unknown": 1054,
+        "accuracy": 0.9553526128868595,
+        "obstacle_recall": 0.5056179775280899,
+        "false_free_space_rate": 0.07142857142857142,
+        "unknown_rate": 0.7409986859395532
+      },
+      "6-8 m": {
+        "true_traversable_called_traversable": 699,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 6129,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 1.0,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.8976274165202109
+      },
+      "8-12 m": {
+        "true_traversable_called_traversable": 0,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 13182,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": NaN,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 1.0
+      },
+      "12-20 m": {
+        "true_traversable_called_traversable": 0,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 724,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": NaN,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 1.0
+      }
+    },
+    "depth_bands": [
+      {
+        "low": 1.0,
+        "high": 2.0,
+        "count": 53835,
+        "bias": 0.007483959375735313,
+        "sigma": 0.008841422716685199,
+        "predicted_sigma": 0.008498957662994846,
+        "ratio": 1.0402949476006302
+      },
+      {
+        "low": 2.0,
+        "high": 3.0,
+        "count": 24073,
+        "bias": 0.012715603852795332,
+        "sigma": 0.02192999497141201,
+        "predicted_sigma": 0.023060769215089354,
+        "ratio": 0.9509654585616579
+      },
+      {
+        "low": 3.0,
+        "high": 5.0,
+        "count": 18562,
+        "bias": 0.03235851289323202,
+        "sigma": 0.08685381828188336,
+        "predicted_sigma": 0.06051097094169282,
+        "ratio": 1.4353400206645832
+      },
+      {
+        "low": 5.0,
+        "high": 7.0,
+        "count": 8493,
+        "bias": 0.06263267532534991,
+        "sigma": 0.11475219627483645,
+        "predicted_sigma": 0.13551554796400697,
+        "ratio": 0.8467825131424382
+      },
+      {
+        "low": 7.0,
+        "high": 10.0,
+        "count": 3901,
+        "bias": 0.08257211713126776,
+        "sigma": 0.16448483683979997,
+        "predicted_sigma": 0.24115261550295716,
+        "ratio": 0.6820777643101406
+      }
+    ],
+    "confidence": {
+      "mean": 0.38890913128852844,
+      "fraction_trusted": 0.3988715277777778,
+      "cells_unknown_stereo": 0.8570108695652174,
+      "cells_unknown_lidar": 0.9185326086956521
+    },
+    "accuracy_lost": 0.02524221773086277,
+    "false_free_space_added": 0.09305555555555556
+  },
+  {
+    "scene": "snow_scree",
+    "lidar": {
+      "true_traversable_called_traversable": 2124,
+      "true_traversable_called_obstacle": 447,
+      "true_traversable_called_unknown": 34229,
+      "true_obstacle_called_obstacle": 0,
+      "true_obstacle_called_traversable": 0,
+      "true_obstacle_called_unknown": 0,
+      "accuracy": 0.8261376896149358,
+      "obstacle_recall": NaN,
+      "false_free_space_rate": NaN,
+      "unknown_rate": 0.9301358695652174
+    },
+    "stereo": {
+      "true_traversable_called_traversable": 5049,
+      "true_traversable_called_obstacle": 418,
+      "true_traversable_called_unknown": 31333,
+      "true_obstacle_called_obstacle": 0,
+      "true_obstacle_called_traversable": 0,
+      "true_obstacle_called_unknown": 0,
+      "accuracy": 0.9235412474849095,
+      "obstacle_recall": NaN,
+      "false_free_space_rate": NaN,
+      "unknown_rate": 0.8514402173913044
+    },
+    "lidar_by_range": {
+      "0-2 m": {
+        "true_traversable_called_traversable": 698,
+        "true_traversable_called_obstacle": 194,
+        "true_traversable_called_unknown": 828,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 0.7825112107623319,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.4813953488372093
+      },
+      "2-4 m": {
+        "true_traversable_called_traversable": 1059,
+        "true_traversable_called_obstacle": 240,
+        "true_traversable_called_unknown": 5437,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 0.815242494226328,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.8071555819477435
+      },
+      "4-6 m": {
+        "true_traversable_called_traversable": 316,
+        "true_traversable_called_obstacle": 13,
+        "true_traversable_called_unknown": 7281,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 0.9604863221884499,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.9567674113009198
+      },
+      "6-8 m": {
+        "true_traversable_called_traversable": 49,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 6779,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 1.0,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.9928236672524897
+      },
+      "8-12 m": {
+        "true_traversable_called_traversable": 2,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 13180,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 1.0,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.9998482779547868
+      },
+      "12-20 m": {
+        "true_traversable_called_traversable": 0,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 724,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": NaN,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 1.0
+      }
+    },
+    "stereo_by_range": {
+      "0-2 m": {
+        "true_traversable_called_traversable": 682,
+        "true_traversable_called_obstacle": 106,
+        "true_traversable_called_unknown": 932,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 0.8654822335025381,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.541860465116279
+      },
+      "2-4 m": {
+        "true_traversable_called_traversable": 2301,
+        "true_traversable_called_obstacle": 121,
+        "true_traversable_called_unknown": 4314,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 0.9500412881915772,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.6404394299287411
+      },
+      "4-6 m": {
+        "true_traversable_called_traversable": 1896,
+        "true_traversable_called_obstacle": 91,
+        "true_traversable_called_unknown": 5623,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 0.9542023150478107,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.7388961892247043
+      },
+      "6-8 m": {
+        "true_traversable_called_traversable": 170,
+        "true_traversable_called_obstacle": 100,
+        "true_traversable_called_unknown": 6558,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": 0.6296296296296297,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 0.960456942003515
+      },
+      "8-12 m": {
+        "true_traversable_called_traversable": 0,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 13182,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": NaN,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 1.0
+      },
+      "12-20 m": {
+        "true_traversable_called_traversable": 0,
+        "true_traversable_called_obstacle": 0,
+        "true_traversable_called_unknown": 724,
+        "true_obstacle_called_obstacle": 0,
+        "true_obstacle_called_traversable": 0,
+        "true_obstacle_called_unknown": 0,
+        "accuracy": NaN,
+        "obstacle_recall": NaN,
+        "false_free_space_rate": NaN,
+        "unknown_rate": 1.0
+      }
+    },
+    "depth_bands": [
+      {
+        "low": 1.0,
+        "high": 2.0,
+        "count": 55737,
+        "bias": 0.011159761010387731,
+        "sigma": 0.019790951934049273,
+        "predicted_sigma": 0.008297749997201821,
+        "ratio": 2.3850986039255466
+      },
+      {
+        "low": 2.0,
+        "high": 3.0,
+        "count": 23854,
+        "bias": 0.017623467265226834,
+        "sigma": 0.045555817825275735,
+        "predicted_sigma": 0.022591157920808343,
+        "ratio": 2.016533104897426
+      },
+      {
+        "low": 3.0,
+        "high": 5.0,
+        "count": 18739,
+        "bias": 0.027172344378690004,
+        "sigma": 0.0915796308396775,
+        "predicted_sigma": 0.056254300278949856,
+        "ratio": 1.6279578696305685
+      },
+      {
+        "low": 5.0,
+        "high": 7.0,
+        "count": 5438,
+        "bias": -0.08840544544677002,
+        "sigma": 0.23535300742084408,
+        "predicted_sigma": 0.12299281087789149,
+        "ratio": 1.9135509282286827
+      }
+    ],
+    "confidence": {
+      "mean": 0.3799864649772644,
+      "fraction_trusted": 0.41153211805555556,
+      "cells_unknown_stereo": 0.8514402173913044,
+      "cells_unknown_lidar": 0.9301358695652174
+    },
+    "accuracy_lost": -0.09740355786997368,
+    "false_free_space_added": NaN
+  }
+]
