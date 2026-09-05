@@ -1,4 +1,4 @@
-name: phase 0 to 3 gates
+name: gates
 
 # Build spec section 12: every table in section 03 reproduced to 1e-9, and
 # the symbolic check passes. ares_math has no ROS dependency, so this runs
@@ -47,8 +47,14 @@ jobs:
           git diff --exit-code ares_sim/worlds ares_sim/textures \
             || (echo "the worlds are stale, run tools/generate_worlds.py and commit it" && exit 1)
 
+      - name: The configs are what constants.py currently produces
+        run: |
+          python tools/generate_configs.py
+          git diff --exit-code ares_bringup/config \
+            || (echo "the configs are stale, run tools/generate_configs.py and commit it" && exit 1)
+
       - name: Test suite
         run: pytest -q
 
       - name: Lint
-        run: ruff check ares_math ares_description ares_sim eval tools
+        run: ruff check ares_math ares_description ares_perception ares_sim ares_bringup eval tools

@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="ares_g">
   <!--
-  ARES-G, hull revision H-2.
+  ARES-G, hull revision H-2, mast at 0.95 m.
   GENERATED FILE. Do not hand edit.
   Source: ares_math/constants.py, via tools/generate_urdf.py.
   Change a number there, re-run the generator, re-run pytest.

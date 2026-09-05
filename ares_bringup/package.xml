@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>ares_bringup</name>
+  <version>0.1.0</version>
+  <description>
+    Launch files and tuning for ARES-G. Nothing here computes anything: every
+    number is generated from ares_math/constants.py or read from it at launch.
+    A magic number in a config file is the same review rejection as a magic
+    number in a node.
+  </description>
+  <maintainer email="engineering@patroclus.systems">Patroclus Systems</maintainer>
+  <license>Proprietary</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <exec_depend>ares_description</exec_depend>
+  <exec_depend>ares_perception</exec_depend>
+  <exec_depend>ares_sim</exec_depend>
+  <exec_depend>nav2_bringup</exec_depend>
+  <exec_depend>navigation2</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>ros_gz_bridge</exec_depend>
+  <exec_depend>ros_gz_sim</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

@@ -366,3 +366,57 @@ def test_regenerating_reproduces_the_committed_file():
     assert before == after, (
         "ares_g.urdf.xacro is stale. Run tools/generate_urdf.py and commit it."
     )
+
+
+# --------------------------------------------------------------------------
+# The gate 3 failure case. Section 10: gate 3 should fail at the lower mast.
+# --------------------------------------------------------------------------
+
+GATE_URDF = ROOT / "ares_description" / "urdf" / "ares_g_mast_050.urdf.xacro"
+
+
+@pytest.fixture(scope="module")
+def gate_joints():
+    if not GATE_URDF.exists():
+        pytest.fail(f"{GATE_URDF} is missing. Run tools/generate_urdf.py.")
+    root = ET.parse(GATE_URDF).getroot()
+    return {j.get("name"): j for j in root.findall("joint")}
+
+
+def test_the_failure_case_model_puts_the_camera_at_half_a_metre(gate_joints):
+    translation, _ = transform_to(gate_joints, "mast_cam_optical")
+    assert translation[2] == pytest.approx(0.50, abs=1e-9)
+
+
+def test_the_failure_case_is_the_same_vehicle_otherwise(joints, gate_joints):
+    """Only the mast changes. If anything else moved, the gate is comparing
+    two different rovers and proves nothing."""
+    assert set(joints) == set(gate_joints)
+    for name in joints:
+        if "mast" in name or "cam" in name:
+            continue
+        a, _ = parse_origin(joints[name])
+        b, _ = parse_origin(gate_joints[name])
+        assert a == pytest.approx(b, abs=1e-12), f"{name} moved between models"
+
+
+def test_the_failure_case_really_does_fail_the_geometry(gate_joints):
+    """Stated here so the two models cannot drift into both passing.
+
+    At 4 km/h the vehicle needs 1.426 m to stop. The trench floor is visible
+    from 1.583 m at 0.95 m of mast, and from 0.833 m at 0.50 m.
+    """
+    from ares_math.constants import LIMITS, TRENCH
+    from ares_math.safety import negative_obstacle_range, stopping_distance
+
+    stop = stopping_distance(
+        4 / 3.6, LIMITS.decel, LIMITS.latency, LIMITS.safety_factor
+    )
+    low, _ = transform_to(gate_joints, "mast_cam_optical")
+    nominal_range = negative_obstacle_range(
+        TRENCH.width, SENSORS.mast_height, TRENCH.depth
+    )
+    low_range = negative_obstacle_range(TRENCH.width, low[2], TRENCH.depth)
+
+    assert nominal_range > stop, "the nominal model must pass the gate"
+    assert low_range < stop, "the low model must fail it, or the gate is decorative"

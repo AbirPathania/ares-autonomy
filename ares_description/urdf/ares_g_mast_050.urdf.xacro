@@ -1,0 +1,578 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="ares_g">
+  <!--
+  ARES-G, hull revision H-2, mast at 0.5 m.
+  GENERATED FILE. Do not hand edit.
+  Source: ares_math/constants.py, via tools/generate_urdf.py.
+  Change a number there, re-run the generator, re-run pytest.
+  Datum: origin at the ground plane, on centreline, at the middle
+  axle station. X forward, Y left, Z up. REP-103 and REP-105.
+-->
+  <link name="base_link">
+    <inertial>
+      <origin xyz="0.0 0.0 0.2175" rpy="0 0 0"/>
+      <mass value="17.8"/>
+      <inertia ixx="0.1626104166666667" ixy="0.0" ixz="0.0" iyy="0.5275104166666668" iyz="0.0" izz="0.5654466666666668"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.0 0.0 0.2175" rpy="0.0 0.0 0.0"/>
+      <geometry>
+        <box size="0.56 0.26 0.20500000000000002"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0.0 0.0 0.2175" rpy="0.0 0.0 0.0"/>
+      <geometry>
+        <box size="0.56 0.26 0.20500000000000002"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="rocker_left">
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+      <mass value="0.6"/>
+      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.004433650000000002" iyz="0.0" izz="0.004433650000000002"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.1365 0.01999999999999999 -0.056" rpy="0.0 1.9601130486280374 0.0"/>
+      <geometry>
+        <cylinder radius="0.011249999999999996" length="0.29778012022295913"/>
+      </geometry>
+    </visual>
+    <visual>
+      <origin xyz="-0.0685 0.0 0.0" rpy="0.0 -1.5707963267948966 0.0"/>
+      <geometry>
+        <cylinder radius="0.011249999999999996" length="0.137"/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="rocker_left_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="rocker_left"/>
+    <origin xyz="0.007 0.135 0.217" rpy="0.0 0.0 0.0"/>
+    <axis xyz="0.0 1.0 0.0"/>
+  </joint>
+  <link name="bogie_left">
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+      <mass value="0.45"/>
+      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0025350000000000004" iyz="0.0" izz="0.0025350000000000004"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.065 0.01999999999999999 -0.056" rpy="0.0 2.2819510385407638 0.0"/>
+      <geometry>
+        <cylinder radius="0.011249999999999996" length="0.17619307591389624"/>
+      </geometry>
+    </visual>
+    <visual>
+      <origin xyz="-0.065 0.01999999999999999 -0.056" rpy="0.0 4.001234268638823 0.0"/>
+      <geometry>
+        <cylinder radius="0.011249999999999996" length="0.17619307591389624"/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="bogie_left_joint" type="continuous">
+    <parent link="rocker_left"/>
+    <child link="bogie_left"/>
+    <origin xyz="-0.137 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    <axis xyz="0.0 1.0 0.0"/>
+  </joint>
+  <link name="wheel_front_left">
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+      <mass value="0.45"/>
+      <inertia ixx="0.00131625" ixy="0.0" ixz="0.0" iyy="0.0024806249999999998" iyz="0.0" izz="0.00131625"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="1.5707963267948966 0.0 0.0"/>
+      <geometry>
+        <cylinder radius="0.105" length="0.044999999999999984"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0.0 0.0 0.0" rpy="1.5707963267948966 0.0 0.0"/>
+      <geometry>
+        <cylinder radius="0.105" length="0.044999999999999984"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="wheel_front_left_joint" type="continuous">
+    <parent link="rocker_left"/>
+    <child link="wheel_front_left"/>
+    <origin xyz="0.273 0.03999999999999998 -0.112" rpy="0.0 0.0 0.0"/>
+    <axis xyz="0.0 1.0 0.0"/>
+  </joint>
+  <link name="wheel_middle_left">
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+      <mass value="0.45"/>
+      <inertia ixx="0.00131625" ixy="0.0" ixz="0.0" iyy="0.0024806249999999998" iyz="0.0" izz="0.00131625"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="1.5707963267948966 0.0 0.0"/>
+      <geometry>
+        <cylinder radius="0.105" length="0.044999999999999984"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0.0 0.0 0.0" rpy="1.5707963267948966 0.0 0.0"/>
+      <geometry>
+        <cylinder radius="0.105" length="0.044999999999999984"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="wheel_middle_left_joint" type="continuous">
+    <parent link="bogie_left"/>
+    <child link="wheel_middle_left"/>
+    <origin xyz="0.13 0.03999999999999998 -0.112" rpy="0.0 0.0 0.0"/>
+    <axis xyz="0.0 1.0 0.0"/>
+  </joint>
+  <link name="wheel_rear_left">
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+      <mass value="0.45"/>
+      <inertia ixx="0.00131625" ixy="0.0" ixz="0.0" iyy="0.0024806249999999998" iyz="0.0" izz="0.00131625"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="1.5707963267948966 0.0 0.0"/>
+      <geometry>
+        <cylinder radius="0.105" length="0.044999999999999984"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0.0 0.0 0.0" rpy="1.5707963267948966 0.0 0.0"/>
+      <geometry>
+        <cylinder radius="0.105" length="0.044999999999999984"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="wheel_rear_left_joint" type="continuous">
+    <parent link="bogie_left"/>
+    <child link="wheel_rear_left"/>
+    <origin xyz="-0.13 0.03999999999999998 -0.112" rpy="0.0 0.0 0.0"/>
+    <axis xyz="0.0 1.0 0.0"/>
+  </joint>
+  <link name="rocker_right">
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+      <mass value="0.6"/>
+      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.004433650000000002" iyz="0.0" izz="0.004433650000000002"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.1365 -0.01999999999999999 -0.056" rpy="0.0 1.9601130486280374 0.0"/>
+      <geometry>
+        <cylinder radius="0.011249999999999996" length="0.29778012022295913"/>
+      </geometry>
+    </visual>
+    <visual>
+      <origin xyz="-0.0685 0.0 0.0" rpy="0.0 -1.5707963267948966 0.0"/>
+      <geometry>
+        <cylinder radius="0.011249999999999996" length="0.137"/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="rocker_right_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="rocker_right"/>
+    <origin xyz="0.007 -0.135 0.217" rpy="0.0 0.0 0.0"/>
+    <axis xyz="0.0 1.0 0.0"/>
+  </joint>
+  <link name="bogie_right">
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+      <mass value="0.45"/>
+      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0025350000000000004" iyz="0.0" izz="0.0025350000000000004"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.065 -0.01999999999999999 -0.056" rpy="0.0 2.2819510385407638 0.0"/>
+      <geometry>
+        <cylinder radius="0.011249999999999996" length="0.17619307591389624"/>
+      </geometry>
+    </visual>
+    <visual>
+      <origin xyz="-0.065 -0.01999999999999999 -0.056" rpy="0.0 4.001234268638823 0.0"/>
+      <geometry>
+        <cylinder radius="0.011249999999999996" length="0.17619307591389624"/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="bogie_right_joint" type="continuous">
+    <parent link="rocker_right"/>
+    <child link="bogie_right"/>
+    <origin xyz="-0.137 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    <axis xyz="0.0 1.0 0.0"/>
+  </joint>
+  <link name="wheel_front_right">
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+      <mass value="0.45"/>
+      <inertia ixx="0.00131625" ixy="0.0" ixz="0.0" iyy="0.0024806249999999998" iyz="0.0" izz="0.00131625"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="1.5707963267948966 0.0 0.0"/>
+      <geometry>
+        <cylinder radius="0.105" length="0.044999999999999984"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0.0 0.0 0.0" rpy="1.5707963267948966 0.0 0.0"/>
+      <geometry>
+        <cylinder radius="0.105" length="0.044999999999999984"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="wheel_front_right_joint" type="continuous">
+    <parent link="rocker_right"/>
+    <child link="wheel_front_right"/>
+    <origin xyz="0.273 -0.03999999999999998 -0.112" rpy="0.0 0.0 0.0"/>
+    <axis xyz="0.0 1.0 0.0"/>
+  </joint>
+  <link name="wheel_middle_right">
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+      <mass value="0.45"/>
+      <inertia ixx="0.00131625" ixy="0.0" ixz="0.0" iyy="0.0024806249999999998" iyz="0.0" izz="0.00131625"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="1.5707963267948966 0.0 0.0"/>
+      <geometry>
+        <cylinder radius="0.105" length="0.044999999999999984"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0.0 0.0 0.0" rpy="1.5707963267948966 0.0 0.0"/>
+      <geometry>
+        <cylinder radius="0.105" length="0.044999999999999984"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="wheel_middle_right_joint" type="continuous">
+    <parent link="bogie_right"/>
+    <child link="wheel_middle_right"/>
+    <origin xyz="0.13 -0.03999999999999998 -0.112" rpy="0.0 0.0 0.0"/>
+    <axis xyz="0.0 1.0 0.0"/>
+  </joint>
+  <link name="wheel_rear_right">
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+      <mass value="0.45"/>
+      <inertia ixx="0.00131625" ixy="0.0" ixz="0.0" iyy="0.0024806249999999998" iyz="0.0" izz="0.00131625"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="1.5707963267948966 0.0 0.0"/>
+      <geometry>
+        <cylinder radius="0.105" length="0.044999999999999984"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0.0 0.0 0.0" rpy="1.5707963267948966 0.0 0.0"/>
+      <geometry>
+        <cylinder radius="0.105" length="0.044999999999999984"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="wheel_rear_right_joint" type="continuous">
+    <parent link="bogie_right"/>
+    <child link="wheel_rear_right"/>
+    <origin xyz="-0.13 -0.03999999999999998 -0.112" rpy="0.0 0.0 0.0"/>
+    <axis xyz="0.0 1.0 0.0"/>
+  </joint>
+  <link name="mast_link">
+    <inertial>
+      <origin xyz="0.0 0.0 0.09" rpy="0 0 0"/>
+      <mass value="0.35"/>
+      <inertia ixx="0.000945" ixy="0.0" ixz="0.0" iyy="0.000945" iyz="0.0" izz="0.0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.0 0.0 0.09" rpy="0.0 0.0 0.0"/>
+      <geometry>
+        <cylinder radius="0.014999999999999994" length="0.18"/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="mast_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="mast_link"/>
+    <origin xyz="0.0 0.0 0.32" rpy="0.0 0.0 0.0"/>
+  </joint>
+  <link name="mast_cam_mount">
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+      <mass value="0.15"/>
+      <inertia ixx="0.0005253125000000001" ixy="0.0" ixz="0.0" iyy="5.062499999999996e-05" iyz="0.0" izz="0.0005253125000000001"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <geometry>
+        <box size="0.022499999999999992 0.2 0.022499999999999992"/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="mast_cam_mount_joint" type="fixed">
+    <parent link="mast_link"/>
+    <child link="mast_cam_mount"/>
+    <origin xyz="0.0 0.0 0.18" rpy="0.0 0.3490658503988659 0.0"/>
+  </joint>
+  <link name="mast_cam_link"/>
+  <joint name="mast_cam_link_joint" type="fixed">
+    <parent link="mast_cam_mount"/>
+    <child link="mast_cam_link"/>
+    <origin xyz="0.0 0.1 0.0" rpy="0.0 0.0 0.0"/>
+  </joint>
+  <link name="mast_cam_optical"/>
+  <joint name="mast_cam_optical_joint" type="fixed">
+    <parent link="mast_cam_link"/>
+    <child link="mast_cam_optical"/>
+    <origin xyz="0.0 0.0 0.0" rpy="-1.5707963267948966 0.0 -1.5707963267948966"/>
+  </joint>
+  <link name="mast_cam_right_link"/>
+  <joint name="mast_cam_right_link_joint" type="fixed">
+    <parent link="mast_cam_mount"/>
+    <child link="mast_cam_right_link"/>
+    <origin xyz="0.0 -0.1 0.0" rpy="0.0 0.0 0.0"/>
+  </joint>
+  <link name="mast_cam_right_optical"/>
+  <joint name="mast_cam_right_optical_joint" type="fixed">
+    <parent link="mast_cam_right_link"/>
+    <child link="mast_cam_right_optical"/>
+    <origin xyz="0.0 0.0 0.0" rpy="-1.5707963267948966 0.0 -1.5707963267948966"/>
+  </joint>
+  <link name="deck_cam_mount">
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+      <mass value="0.15"/>
+      <inertia ixx="0.00020531249999999996" ixy="0.0" ixz="0.0" iyy="5.062499999999996e-05" iyz="0.0" izz="0.00020531249999999996"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <geometry>
+        <box size="0.022499999999999992 0.12 0.022499999999999992"/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="deck_cam_mount_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="deck_cam_mount"/>
+    <origin xyz="0.0 0.0 0.36" rpy="0.0 0.6108652381980153 0.0"/>
+  </joint>
+  <link name="deck_cam_link"/>
+  <joint name="deck_cam_link_joint" type="fixed">
+    <parent link="deck_cam_mount"/>
+    <child link="deck_cam_link"/>
+    <origin xyz="0.0 0.06 0.0" rpy="0.0 0.0 0.0"/>
+  </joint>
+  <link name="deck_cam_optical"/>
+  <joint name="deck_cam_optical_joint" type="fixed">
+    <parent link="deck_cam_link"/>
+    <child link="deck_cam_optical"/>
+    <origin xyz="0.0 0.0 0.0" rpy="-1.5707963267948966 0.0 -1.5707963267948966"/>
+  </joint>
+  <link name="deck_cam_right_link"/>
+  <joint name="deck_cam_right_link_joint" type="fixed">
+    <parent link="deck_cam_mount"/>
+    <child link="deck_cam_right_link"/>
+    <origin xyz="0.0 -0.06 0.0" rpy="0.0 0.0 0.0"/>
+  </joint>
+  <link name="deck_cam_right_optical"/>
+  <joint name="deck_cam_right_optical_joint" type="fixed">
+    <parent link="deck_cam_right_link"/>
+    <child link="deck_cam_right_optical"/>
+    <origin xyz="0.0 0.0 0.0" rpy="-1.5707963267948966 0.0 -1.5707963267948966"/>
+  </joint>
+  <gazebo>
+    <joint name="rocker_differential" type="gearbox">
+      <parent link="rocker_left"/>
+      <child link="rocker_right"/>
+      <gearbox_reference_body link="base_link"/>
+      <gearbox_ratio>-1.0</gearbox_ratio>
+      <axis>
+        <xyz>0 1 0</xyz>
+      </axis>
+      <axis2>
+        <xyz>0 1 0</xyz>
+      </axis2>
+    </joint>
+  </gazebo>
+  <gazebo>
+    <plugin filename="ares_differential" name="ares::sim::RockerDifferential">
+      <left_joint>rocker_left_joint</left_joint>
+      <right_joint>rocker_right_joint</right_joint>
+    </plugin>
+  </gazebo>
+  <gazebo reference="wheel_front_left">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+  </gazebo>
+  <gazebo reference="wheel_middle_left">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+  </gazebo>
+  <gazebo reference="wheel_rear_left">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+  </gazebo>
+  <gazebo reference="wheel_front_right">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+  </gazebo>
+  <gazebo reference="wheel_middle_right">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+  </gazebo>
+  <gazebo reference="wheel_rear_right">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+  </gazebo>
+  <gazebo reference="mast_cam_link">
+    <sensor name="mast_cam" type="camera">
+      <always_on>1</always_on>
+      <update_rate>30</update_rate>
+      <visualize>false</visualize>
+      <topic>/mast_cam/image_raw</topic>
+      <camera>
+        <horizontal_fov>1.5707963267948966</horizontal_fov>
+        <image>
+          <width>1280</width>
+          <height>720</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.105</near>
+          <far>100</far>
+        </clip>
+        <lens>
+          <intrinsics>
+            <fx>640.0000000000001</fx>
+            <fy>640.0000000000001</fy>
+            <cx>640.0</cx>
+            <cy>360.0</cy>
+            <s>0</s>
+          </intrinsics>
+        </lens>
+      </camera>
+    </sensor>
+  </gazebo>
+  <gazebo reference="mast_cam_right_link">
+    <sensor name="mast_cam_right" type="camera">
+      <always_on>1</always_on>
+      <update_rate>30</update_rate>
+      <visualize>false</visualize>
+      <topic>/mast_cam_right/image_raw</topic>
+      <camera>
+        <horizontal_fov>1.5707963267948966</horizontal_fov>
+        <image>
+          <width>1280</width>
+          <height>720</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.105</near>
+          <far>100</far>
+        </clip>
+        <lens>
+          <intrinsics>
+            <fx>640.0000000000001</fx>
+            <fy>640.0000000000001</fy>
+            <cx>640.0</cx>
+            <cy>360.0</cy>
+            <s>0</s>
+          </intrinsics>
+        </lens>
+      </camera>
+    </sensor>
+  </gazebo>
+  <gazebo reference="deck_cam_link">
+    <sensor name="deck_cam" type="camera">
+      <always_on>1</always_on>
+      <update_rate>30</update_rate>
+      <visualize>false</visualize>
+      <topic>/deck_cam/image_raw</topic>
+      <camera>
+        <horizontal_fov>1.5707963267948966</horizontal_fov>
+        <image>
+          <width>1280</width>
+          <height>720</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.105</near>
+          <far>100</far>
+        </clip>
+        <lens>
+          <intrinsics>
+            <fx>640.0000000000001</fx>
+            <fy>640.0000000000001</fy>
+            <cx>640.0</cx>
+            <cy>360.0</cy>
+            <s>0</s>
+          </intrinsics>
+        </lens>
+      </camera>
+    </sensor>
+  </gazebo>
+  <gazebo reference="deck_cam_right_link">
+    <sensor name="deck_cam_right" type="camera">
+      <always_on>1</always_on>
+      <update_rate>30</update_rate>
+      <visualize>false</visualize>
+      <topic>/deck_cam_right/image_raw</topic>
+      <camera>
+        <horizontal_fov>1.5707963267948966</horizontal_fov>
+        <image>
+          <width>1280</width>
+          <height>720</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.105</near>
+          <far>100</far>
+        </clip>
+        <lens>
+          <intrinsics>
+            <fx>640.0000000000001</fx>
+            <fy>640.0000000000001</fy>
+            <cx>640.0</cx>
+            <cy>360.0</cy>
+            <s>0</s>
+          </intrinsics>
+        </lens>
+      </camera>
+    </sensor>
+  </gazebo>
+  <gazebo reference="mast_cam_link">
+    <sensor name="ground_truth_depth" type="depth_camera">
+      <always_on>1</always_on>
+      <update_rate>10</update_rate>
+      <topic>/sim/ground_truth/depth</topic>
+      <camera>
+        <horizontal_fov>1.5707963267948966</horizontal_fov>
+        <image>
+          <width>1280</width>
+          <height>720</height>
+        </image>
+        <clip>
+          <near>0.105</near>
+          <far>100</far>
+        </clip>
+      </camera>
+    </sensor>
+  </gazebo>
+  <gazebo>
+    <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+      <left_joint>wheel_front_left_joint</left_joint>
+      <left_joint>wheel_middle_left_joint</left_joint>
+      <left_joint>wheel_rear_left_joint</left_joint>
+      <right_joint>wheel_front_right_joint</right_joint>
+      <right_joint>wheel_middle_right_joint</right_joint>
+      <right_joint>wheel_rear_right_joint</right_joint>
+      <wheel_separation>0.35</wheel_separation>
+      <wheel_radius>0.105</wheel_radius>
+      <odom_topic>odom</odom_topic>
+      <frame_id>odom</frame_id>
+      <child_frame_id>base_link</child_frame_id>
+      <topic>cmd_vel</topic>
+      <max_linear_velocity>1.111</max_linear_velocity>
+      <max_linear_acceleration>1.0</max_linear_acceleration>
+    </plugin>
+  </gazebo>
+</robot>

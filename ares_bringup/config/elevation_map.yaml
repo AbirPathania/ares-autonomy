@@ -1,0 +1,69 @@
+# GENERATED FILE. Do not hand edit.
+# Source: ares_math/constants.py, via tools/generate_configs.py.
+# Every number below traces to hull revision H-2 or to a formula in
+# section 03 of the ARES Autonomy Build Spec. Change a constant, re-run
+# the generator, re-run pytest.
+#
+# elevation_mapping_cupy, with the semantic layers section 09 asks for.
+# 
+# The slope limit is 39.9 degrees of static tipover,
+# from a centre of mass at 209 mm and the
+# 0.35 m track, divided by the 1.5 safety
+# factor to give 26.6 degrees.
+# 
+# The step limit is the 0.245 m obstacle claim, and the
+# negative obstacle the vehicle is sized around is 0.5 by
+# 0.3 m.
+# 
+# Low confidence is not missing data to be filled in. It is a first
+# class value that caps speed, so the traversability layer keeps it
+# rather than interpolating over it.
+
+elevation_mapping:
+  ros__parameters:
+    resolution: 0.05
+    map_length: 11.41
+    sensor_noise_factor: 0.25
+    map_frame: odom
+    base_frame: base_link
+    update_variance_fps: 5.0
+    time_interval: 0.1
+    max_height_range: 0.95
+    enable_drift_compensation: true
+    enable_edge_sharpen: true
+    enable_visibility_cleanup: true
+    enable_overlap_clearance: false
+    position_noise_thresh: 0.025
+    orientation_noise_thresh: 0.01
+    plugin_config_file: traversability_layers.yaml
+traversability:
+  ros__parameters:
+    slope_critical_deg: 39.92736615008554
+    slope_limit_deg: 26.618244100057026
+    step_limit: 0.245
+    roughness_limit: 0.1225
+    negative_obstacle_width: 0.5
+    negative_obstacle_depth: 0.3
+    confidence_floor: 0.5
+    minimum_points_per_cell: 3
+    unknown_is_not_free: true
+semantic_layers:
+  ros__parameters:
+    classes:
+    - rock
+    - scree
+    - grass
+    - snow
+    - mud
+    - water
+    - bush
+    - sky
+    - man_made
+    reduced_confidence_classes:
+    - snow
+    - water
+    - mud
+    never_traversable_classes:
+    - water
+    - sky
+    - man_made

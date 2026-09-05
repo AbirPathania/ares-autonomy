@@ -43,6 +43,17 @@ from ares_math.kinematics import LINKAGE, box_inertia, cylinder_inertia, rod_ine
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "ares_description" / "urdf" / "ares_g.urdf.xacro"
 
+# Gate 3 has to be run twice: once with the mast at the height section 02
+# derives, and once lower, where the analysis says it must fail. The low
+# variant is generated too rather than overridden at launch, so both models
+# are artifacts of constants.py and neither is a hand edit.
+#
+# 0.50 m is not an arbitrary second number. It is the height at which the
+# trench floor is visible from only 0.833 m while the vehicle needs 1.426 m
+# to stop, which is the clearest possible failure.
+GATE_MAST_HEIGHT = 0.50
+GATE_OUT = ROOT / "ares_description" / "urdf" / "ares_g_mast_050.urdf.xacro"
+
 XACRO_NS = "http://www.ros.org/wiki/xacro"
 
 # Wheel width is not a hull number, it is a rendering and contact patch
@@ -115,11 +126,12 @@ def add_joint(robot, name, kind, parent, child, xyz, rpy=(0.0, 0.0, 0.0), axis=N
     return joint
 
 
-def build():
+def build(mast_height=None):
+    mast_height = SENSORS.mast_height if mast_height is None else mast_height
     robot = ET.Element("robot", {"name": "ares_g", "xmlns:xacro": XACRO_NS})
     robot.append(
         ET.Comment(
-            f"\n  ARES-G, hull revision {REVISION}.\n\n"
+            f"\n  ARES-G, hull revision {REVISION}, mast at {mast_height} m.\n\n"
             "  GENERATED FILE. Do not hand edit.\n"
             "  Source: ares_math/constants.py, via tools/generate_urdf.py.\n"
             "  Change a number there, re-run the generator, re-run pytest.\n\n"
@@ -244,7 +256,7 @@ def build():
 
     # ----------------------------------------------------------- the mast
     # Section 02 sizes this. It is a perception parameter, not packaging.
-    mast_length = SENSORS.mast_height - CHASSIS.deck_z
+    mast_length = mast_height - CHASSIS.deck_z
     mast = add_link(robot, "mast_link")
     add_inertial(
         mast,
@@ -271,7 +283,7 @@ def build():
     # Two units, two heights, two jobs. This is a coverage scheme, not a
     # redundancy scheme, and the blind zone table in section 03.4 is why.
     units = (
-        ("mast_cam", "mast_link", SENSORS.mast_height - CHASSIS.deck_z,
+        ("mast_cam", "mast_link", mast_height - CHASSIS.deck_z,
          SENSORS.mast_tilt_deg, SENSORS.mast_baseline),
         ("deck_cam", "base_link", SENSORS.deck_height,
          SENSORS.deck_tilt_deg, SENSORS.deck_baseline),
@@ -455,16 +467,24 @@ def pretty(root):
 
 def main():
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(pretty(build()))
-    n_links = len(build().findall("link"))
-    n_joints = len(build().findall("joint"))
-    print(f"wrote {OUT}")
-    print(f"  {n_links} links, {n_joints} joints, hull revision {REVISION}")
-    try:
-        subprocess.run(["check_urdf", str(OUT)], check=True, capture_output=True)
-        print("  check_urdf passed")
-    except (FileNotFoundError, subprocess.CalledProcessError):
-        print("  check_urdf not available here, the geometry tests cover it")
+    for path, height, label in (
+        (OUT, SENSORS.mast_height, "nominal"),
+        (GATE_OUT, GATE_MAST_HEIGHT, "gate 3 failure case"),
+    ):
+        robot = build(height)
+        path.write_text(pretty(robot))
+        n_links = len(robot.findall("link"))
+        n_joints = len(robot.findall("joint"))
+        print(f"wrote {path.relative_to(ROOT)}")
+        print(
+            f"  {n_links} links, {n_joints} joints, mast at {height} m, "
+            f"hull revision {REVISION} ({label})"
+        )
+        try:
+            subprocess.run(["check_urdf", str(path)], check=True, capture_output=True)
+            print("  check_urdf passed")
+        except (FileNotFoundError, subprocess.CalledProcessError):
+            print("  check_urdf not available here, the geometry tests cover it")
 
 
 if __name__ == "__main__":
