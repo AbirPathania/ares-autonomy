@@ -19,6 +19,7 @@ __all__ = [
     "depth_from_disparity",
     "disparity_from_depth",
     "depth_error",
+    "depth_error_array",
     "range_at_error",
     "min_range",
     "baseline_for_error_at_range",
@@ -72,6 +73,30 @@ def depth_error(Z, f, B, d_disp):
         raise ValueError("f and B must be positive")
     if d_disp < 0:
         raise ValueError("d_disp must not be negative")
+    return Z**2 * d_disp / (f * B)
+
+
+def depth_error_array(Z, f, B, d_disp):
+    """depth_error over an array of ranges.
+
+    Same relation, elementwise, for callers that need it per grid cell rather
+    than per number. It lives here rather than being written out at the call
+    site because section 11 does not make an exception for a loop being slow:
+    the traversability layer needs the section 03.2 curve evaluated over a
+    hundred thousand cells at 5 Hz, and calling the scalar form that many
+    times is not an argument for having a second copy of the equation.
+
+    Z is array-like, metres. Returns a numpy array, metres.
+    """
+    import numpy as np
+
+    Z = np.asarray(Z, dtype=float)
+    if f <= 0 or B <= 0:
+        raise ValueError("f and B must be positive")
+    if d_disp < 0:
+        raise ValueError("d_disp must not be negative")
+    if np.any(Z <= 0):
+        raise ValueError("every Z must be positive")
     return Z**2 * d_disp / (f * B)
 
 

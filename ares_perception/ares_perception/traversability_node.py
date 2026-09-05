@@ -24,14 +24,20 @@ from cv_bridge import CvBridge
 from geometry_msgs.msg import TwistStamped
 from rclpy.node import Node
 from rclpy.qos import QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy
-from sensor_msgs.msg import Image, PointCloud2
+from sensor_msgs.msg import CameraInfo, Image, PointCloud2
 from std_msgs.msg import Float32MultiArray, String
 from tf2_ros import Buffer, TransformListener
 
-from ares_math.constants import CHASSIS, LIMITS
+from ares_math.constants import CAMERA, CHASSIS, LIMITS, SENSORS
+from ares_math.optics import focal_px
 
 from .governor import speed_limit
-from .traversability import STATE_NAMES, GridSpec, estimate
+from .traversability import (
+    STATE_NAMES,
+    GridSpec,
+    depth_noise_grid,
+    estimate,
+)
 
 SENSOR_QOS = QoSProfile(
     reliability=QoSReliabilityPolicy.BEST_EFFORT,
@@ -53,6 +59,7 @@ class TraversabilityNode(Node):
         self.declare_parameter("x_max", 20.0)
         self.declare_parameter("half_width", 8.0)
         self.declare_parameter("confidence_floor", 0.5)
+        self.declare_parameter("baseline", SENSORS.mast_baseline)
 
         units = list(self.get_parameter("units").value)
         self.clouds = {}
@@ -71,10 +78,22 @@ class TraversabilityNode(Node):
         # look like a bug, it looks like the rover seeing an obstacle two
         # centimetres in front of itself. Look the transform up, never assume
         # it, and refuse to publish if it is not available yet.
+        # Thresholds widen with range by the depth uncertainty the optics
+        # predict there. Read from CameraInfo so it follows the real camera.
+        self.noise = None
+        self.fx = focal_px(CAMERA.sim_width_px, CAMERA.hfov_deg)
+        self.baseline = float(self.get_parameter("baseline").value)
+
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
         self.warned_about_tf = False
 
+        self.create_subscription(
+            CameraInfo,
+            f"/{units[0]}/camera_info",
+            self.on_camera_info,
+            qos_profile=SENSOR_QOS,
+        )
         for unit in units:
             self.create_subscription(
                 PointCloud2,
@@ -104,6 +123,11 @@ class TraversabilityNode(Node):
             f"{LIMITS.v_autonomous * 3.6:.1f} km/h."
         )
 
+    def on_camera_info(self, msg):
+        if msg.k[0] > 0.0 and abs(msg.k[0] - self.fx) > 1e-9:
+            self.fx = float(msg.k[0])
+            self.noise = None
+
     def on_cloud(self, msg, unit):
         points = _read_xyz(msg)
         if points.size:
@@ -121,8 +145,13 @@ class TraversabilityNode(Node):
             return
         points = np.concatenate(fused, axis=0)
 
+        if self.noise is None:
+            self.noise = depth_noise_grid(self.spec, self.fx, self.baseline)
         state, surface, _ = estimate(
-            points, spec=self.spec, confidence_floor=self.confidence_floor
+            points,
+            spec=self.spec,
+            confidence_floor=self.confidence_floor,
+            noise=self.noise,
         )
         limit = speed_limit(state, self.spec)
 

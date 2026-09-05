@@ -25,10 +25,26 @@ import numpy as np
 from ares_math.constants import REVISION
 from ares_math.kinematics import stability_limits
 from ares_perception.matcher import StereoMatcher, depth_to_points
-from ares_perception.traversability import UNKNOWN, GridSpec, estimate
+from ares_perception.traversability import (
+    UNKNOWN,
+    GridSpec,
+    depth_noise_grid,
+    estimate,
+)
 
 from . import synthetic as syn
 from .metrics import Ablation, score_by_range, score_depth, score_traversability
+
+# The one sigma range noise of a small spinning LiDAR, metres, roughly flat
+# with range. Not a datasheet value, and it is an INPUT to the comparison
+# rather than a result of it: the ablation asks what is lost by deleting this
+# sensor, so how good it is has to be stated rather than assumed.
+#
+# The two sources go through an identical estimator. What differs is the
+# uncertainty each one declares, and that is a property of the sensor. Giving
+# stereo the LiDAR's flat error model would be the same mistake as giving the
+# LiDAR stereo's, and it would flatter whichever one received the wrong model.
+LIDAR_RANGE_SIGMA = 0.02
 
 REPORT_DIR = Path(__file__).resolve().parent / "report"
 
@@ -44,7 +60,9 @@ def run_synthetic_scene(name, confidence_floor=0.5, spec=None):
 
     # Source A, LiDAR. Sparse, accurate, and already in the body frame.
     cloud = syn.lidar_sample(scene, pose)
-    lidar_state, lidar_surface, _ = estimate(cloud, spec=spec)
+    lidar_state, lidar_surface, _ = estimate(
+        cloud, spec=spec, noise=np.full(spec.shape, LIDAR_RANGE_SIGMA)
+    )
 
     # Source B, stereo. Dense, cheap, and wrong in a specific way.
     matcher = StereoMatcher(intrinsics)
@@ -53,8 +71,11 @@ def run_synthetic_scene(name, confidence_floor=0.5, spec=None):
         depth, intrinsics, confidence=confidence, camera_to_body=pose
     )
     stereo_state, stereo_surface, _ = estimate(
-        points, spec=spec, confidence=point_confidence,
+        points,
+        spec=spec,
+        confidence=point_confidence,
         confidence_floor=confidence_floor,
+        noise=depth_noise_grid(spec, intrinsics.fx, intrinsics.baseline),
     )
 
     truth = syn.truth_grid(scene, spec)
@@ -111,7 +132,11 @@ def run_dataset(root, limit=None, confidence_floor=0.5):
     frames = dataset.frames()[:limit] if limit else dataset.frames()
     for i, frame in enumerate(frames):
         sample = dataset.load(frame)
-        lidar_state, _, _ = estimate(sample.lidar_points, spec=spec)
+        lidar_state, _, _ = estimate(
+            sample.lidar_points,
+            spec=spec,
+            noise=np.full(spec.shape, LIDAR_RANGE_SIGMA),
+        )
         depth, confidence, _ = matcher(sample.left, sample.right)
         points, point_confidence = depth_to_points(
             depth,
@@ -120,8 +145,13 @@ def run_dataset(root, limit=None, confidence_floor=0.5):
             camera_to_body=dataset.camera_to_body,
         )
         stereo_state, _, _ = estimate(
-            points, spec=spec, confidence=point_confidence,
+            points,
+            spec=spec,
+            confidence=point_confidence,
             confidence_floor=confidence_floor,
+            noise=depth_noise_grid(
+                spec, dataset.intrinsics.fx, dataset.intrinsics.baseline
+            ),
         )
         truth, classes = dataset.truth_grid(sample, spec)
 

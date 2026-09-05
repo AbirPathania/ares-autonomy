@@ -199,3 +199,25 @@ def test_sync_budget_round_trip(yaw, dt, f):
     disp = skew_disparity_error(f, yaw, dt)
     assume(disp > 1e-12)
     assert sync_skew_budget(disp, f, yaw) == pytest.approx(dt, rel=1e-9)
+
+
+def test_the_array_form_agrees_with_the_scalar_form():
+    """Same equation, elementwise. A second copy of a formula is a second
+    formula, and it will drift."""
+    import numpy as np
+
+    from ares_math.stereo import depth_error_array
+
+    ranges = np.array([0.5, 1.0, 2.0, 5.0, 10.0, 20.0])
+    got = depth_error_array(ranges, 640.0, 0.20, 0.25)
+    want = [depth_error(Z=float(z), f=640.0, B=0.20, d_disp=0.25) for z in ranges]
+    assert got == pytest.approx(want, rel=1e-12)
+
+
+def test_the_array_form_refuses_a_non_positive_range():
+    import numpy as np
+
+    from ares_math.stereo import depth_error_array
+
+    with pytest.raises(ValueError, match="positive"):
+        depth_error_array(np.array([1.0, 0.0]), 640.0, 0.20, 0.25)

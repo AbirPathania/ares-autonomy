@@ -17,11 +17,13 @@ from ares_perception.traversability import (
     TRAVERSABLE,
     UNKNOWN,
     GridSpec,
+    depth_noise_grid,
     estimate,
     rasterise,
 )
 from eval.rellis_ablation import synthetic as syn
 from eval.rellis_ablation.metrics import score_depth, score_traversability
+from eval.rellis_ablation.run_ablation import LIDAR_RANGE_SIGMA
 
 # Small enough to keep the suite quick, large enough for stereo to be real.
 SMALL = 240, 136
@@ -232,7 +234,8 @@ def test_the_estimator_reads_its_limits_from_ares_math():
     for cls in ast.walk(tree):
         if isinstance(cls, ast.ClassDef) and cls.name == "GridSpec":
             grid_lines = set(range(cls.lineno, cls.end_lineno + 1))
-    allowed = {0.0, 1.0, 2.0, 0.5, 7.0}
+    # 0.001 is a divide-by-zero guard on the range grid, not a threshold.
+    allowed = {0.0, 1.0, 2.0, 0.5, 7.0, 0.001}
     offenders = [
         f"line {node.lineno}: {node.value}"
         for node in ast.walk(tree)
@@ -284,14 +287,19 @@ def test_both_sources_go_through_the_same_estimator(flat, intrinsics):
     spec = GridSpec(x_min=1.0, x_max=8.0, y_min=-3.0, y_max=3.0)
 
     cloud = syn.lidar_sample(scene, pose, rings=32, azimuths=256)
-    lidar_state, _, lidar_diag = estimate(cloud, spec=spec)
+    lidar_state, _, lidar_diag = estimate(
+        cloud, spec=spec, noise=np.full(spec.shape, LIDAR_RANGE_SIGMA)
+    )
 
     depth, confidence, _ = StereoMatcher(intrinsics)(left, right)
     points, point_confidence = depth_to_points(
         depth, intrinsics, confidence=confidence, camera_to_body=pose
     )
     stereo_state, _, stereo_diag = estimate(
-        points, spec=spec, confidence=point_confidence
+        points,
+        spec=spec,
+        confidence=point_confidence,
+        noise=depth_noise_grid(spec, intrinsics.fx, intrinsics.baseline),
     )
 
     assert lidar_state.shape == stereo_state.shape

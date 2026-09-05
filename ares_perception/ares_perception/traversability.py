@@ -18,6 +18,7 @@ Every vehicle limit comes from ares_math. Nothing in this file is a physical
 number.
 """
 
+import warnings
 from dataclasses import dataclass
 
 import numpy as np
@@ -138,33 +139,86 @@ def rasterise(points, spec=None, confidence=None):
     return Surface(spec, count, z_min, z_max, z_mean, conf)
 
 
-def _neighbour_slope(z, cell):
-    """Steepest local gradient in degrees, from a central difference."""
-    padded = np.pad(z, 1, mode="edge")
-    dzdx = (padded[2:, 1:-1] - padded[:-2, 1:-1]) / (2.0 * cell)
-    dzdy = (padded[1:-1, 2:] - padded[1:-1, :-2]) / (2.0 * cell)
-    return np.degrees(np.arctan(np.hypot(dzdx, dzdy)))
+def _neighbour_differences(z, observed, cell):
+    """Height jump and slope to each observed neighbour.
+
+    Only observed pairs count. The obvious implementation fills the gaps with
+    something plausible, a median or the nearest edge value, and then takes
+    gradients over the filled grid. That manufactures a cliff at every
+    boundary between measured and unmeasured ground, and since a camera
+    measures a wedge and the grid is a rectangle, almost every measured cell
+    sits on such a boundary. Measured in the simulator: 2.5 per cent of the
+    grid came back OBSTACLE against 0.6 per cent traversable, on flat ground.
+
+    A cell with no observed neighbour yields NaN, and NaN fails every
+    threshold comparison, so it is not blocked. That is the intended reading:
+    a lone measured cell surrounded by nothing is not evidence of an
+    obstacle, it is evidence of not much.
+
+    Returns (step in metres, slope in degrees), both NaN where unjudgeable.
+    """
+    masked = np.where(observed, z, np.nan)
+    padded = np.pad(masked, 1, mode="constant", constant_values=np.nan)
+    ahead = padded[2:, 1:-1]
+    behind = padded[:-2, 1:-1]
+    left = padded[1:-1, 2:]
+    right = padded[1:-1, :-2]
+
+    with np.errstate(invalid="ignore"), warnings.catch_warnings():
+        # An all-NaN slice is the expected answer for a cell with no observed
+        # neighbour, not something to warn about once per cell per frame.
+        warnings.simplefilter("ignore", RuntimeWarning)
+        # Step: the largest jump to any observed neighbour. This is the test
+        # for a kerb or a rock edge, and one cell is the right separation.
+        step = np.nanmax(
+            np.abs(np.stack([ahead, behind, left, right]) - masked), axis=0
+        )
+
+        # Slope: a central difference over two cells where both sides are
+        # observed, falling back to one sided where only one is. Two cells
+        # rather than one on purpose. A single cell separation doubles the
+        # gradient a given height difference produces, and at a 50 mm cell
+        # that turns 20 mm of stereo noise into a 22 degree slope, which is
+        # most of the way to the vehicle's 26.6 degree limit.
+        dzdx = _gradient(ahead, behind, masked, cell)
+        dzdy = _gradient(left, right, masked, cell)
+        slope = np.degrees(np.arctan(np.hypot(dzdx, dzdy)))
+
+    return step, slope
 
 
-def _neighbour_step(z, cell):
-    """Largest height jump to any of the four neighbours, metres."""
-    del cell
-    padded = np.pad(z, 1, mode="edge")
-    steps = [
-        np.abs(padded[2:, 1:-1] - z),
-        np.abs(padded[:-2, 1:-1] - z),
-        np.abs(padded[1:-1, 2:] - z),
-        np.abs(padded[1:-1, :-2] - z),
-    ]
-    return np.nanmax(np.stack(steps), axis=0)
+def _gradient(plus, minus, centre, cell):
+    """Central difference where both sides are observed, one sided otherwise."""
+    central = (plus - minus) / (2.0 * cell)
+    forward = (plus - centre) / cell
+    backward = (centre - minus) / cell
+    out = np.where(np.isfinite(central), central, np.nan)
+    out = np.where(np.isfinite(out), out, forward)
+    out = np.where(np.isfinite(out), out, backward)
+    return np.nan_to_num(out, nan=0.0)
 
 
-def classify(surface, confidence_floor=0.5, slope_limit=None, step_limit=None):
+def classify(
+    surface,
+    confidence_floor=0.5,
+    slope_limit=None,
+    step_limit=None,
+    noise=None,
+):
     """Height statistics to the three way traversability decision.
 
     slope_limit defaults to the vehicle's working slope, derived from its own
     centre of mass and track by ares_math.kinematics.stability_limits.
     step_limit defaults to the obstacle claim in constants.py.
+
+    noise is the expected one sigma depth error at each cell, which the caller
+    computes from its own optics through ares_math.stereo.depth_error. It
+    matters: depth error grows with the square of range, so at 6 m on the
+    simulator's optics a cell's height spread is around 0.14 m from
+    measurement noise alone. Judged against a fixed threshold, distant ground
+    becomes an obstacle field made entirely of stereo noise. The thresholds
+    are widened by twice the local sigma so that a cell is only blocked when
+    the geometry, and not the uncertainty, says so.
 
     Returns (state grid, diagnostics dict).
     """
@@ -175,10 +229,8 @@ def classify(surface, confidence_floor=0.5, slope_limit=None, step_limit=None):
 
     cell = surface.spec.cell
     z = np.where(surface.observed, surface.z_mean, np.nan)
-    filled = np.where(np.isnan(z), np.nanmedian(z) if np.any(~np.isnan(z)) else 0.0, z)
 
-    slope = _neighbour_slope(filled, cell)
-    step = _neighbour_step(filled, cell)
+    step, slope = _neighbour_differences(z, surface.observed, cell)
     # Within-cell spread. A rock and the ground beside it land in one cell at
     # range, and this is what catches that.
     with np.errstate(invalid="ignore"):
@@ -186,14 +238,21 @@ def classify(surface, confidence_floor=0.5, slope_limit=None, step_limit=None):
             surface.observed, surface.z_max - surface.z_min, np.nan
         )
 
+    tolerance = np.zeros_like(z) if noise is None else 2.0 * np.asarray(noise)
+    step_threshold = step_limit + tolerance
+    slope_threshold = slope_limit + np.degrees(np.arctan(tolerance / cell))
+
     state = np.full(surface.count.shape, UNKNOWN, dtype=np.uint8)
     measured = surface.observed & (surface.confidence >= confidence_floor)
 
-    blocked = (
-        (slope > slope_limit)
-        | (step > step_limit)
-        | (np.nan_to_num(roughness, nan=0.0) > step_limit)
-    )
+    # NaN fails every comparison, which is the behaviour wanted here: a cell
+    # with nothing to compare against is not blocked.
+    with np.errstate(invalid="ignore"):
+        blocked = (
+            (slope > slope_threshold)
+            | (step > step_threshold)
+            | (roughness > step_threshold)
+        )
     state[measured & ~blocked] = TRAVERSABLE
     state[measured & blocked] = OBSTACLE
 
@@ -204,11 +263,29 @@ def classify(surface, confidence_floor=0.5, slope_limit=None, step_limit=None):
         "measured": measured,
         "slope_limit_deg": slope_limit,
         "step_limit_m": step_limit,
+        "noise_tolerance_m": tolerance,
     }
 
 
-def estimate(points, spec=None, confidence=None, confidence_floor=0.5):
+def estimate(points, spec=None, confidence=None, confidence_floor=0.5, noise=None):
     """Points to a traversability grid. The whole estimator, one call."""
     surface = rasterise(points, spec=spec, confidence=confidence)
-    state, diagnostics = classify(surface, confidence_floor=confidence_floor)
+    state, diagnostics = classify(
+        surface, confidence_floor=confidence_floor, noise=noise
+    )
     return state, surface, diagnostics
+
+
+def depth_noise_grid(spec, f_px, baseline, sigma_px=None):
+    """Expected one sigma depth error at each cell, metres.
+
+    The section 03.2 curve evaluated over the grid. Passed to classify so the
+    thresholds widen with range instead of turning distant stereo noise into
+    an obstacle field.
+    """
+    from ares_math.constants import CAMERA
+    from ares_math.stereo import depth_error_array
+
+    sigma = CAMERA.disparity_sigma_px if sigma_px is None else sigma_px
+    ranges = np.maximum(spec.ranges(), 1e-3)
+    return depth_error_array(ranges, f_px, baseline, sigma)
