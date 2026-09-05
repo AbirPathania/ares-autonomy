@@ -29,8 +29,10 @@ else()
   message(STATUS "Gazebo not found, skipping the rocker differential plugin")
 endif()
 
+# Launch files live in ares_bringup, per the section 05 tree. This package
+# is worlds, textures and the differential plugin.
 install(
-  DIRECTORY worlds textures launch
+  DIRECTORY worlds textures
   DESTINATION share/${PROJECT_NAME}
 )
 
