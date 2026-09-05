@@ -13,7 +13,8 @@
 # and keep appending to the log, and a gate scored against a stale stereo node
 # is worse than no gate.
 
-set -u
+# No set -u: the ROS setup scripts reference unbound variables of their own,
+# and sourcing them under it fails before anything starts.
 GATE=${1:?gate number}
 WORLD=${2:?world name}
 MODEL=${3:-ares_g}
