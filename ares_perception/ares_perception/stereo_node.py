@@ -18,6 +18,8 @@ wiring, the timing, and the parts that must not be quietly wrong:
     the pipeline reports its own latency, because latency is stopping distance
 """
 
+import time
+
 import numpy as np
 import rclpy
 from cv_bridge import CvBridge
@@ -160,7 +162,10 @@ class StereoNode(Node):
             return
         stamp, left_msg, right_msg, skew = pair
 
-        started = self.get_clock().now()
+        # Wall clock, deliberately. Under use_sim_time the ROS clock only
+        # advances when /clock ticks, so this would read exactly zero and
+        # the latency budget in section 03.3 would look free.
+        started = time.monotonic()
         left = self.bridge.imgmsg_to_cv2(left_msg, desired_encoding="mono8")
         right = self.bridge.imgmsg_to_cv2(right_msg, desired_encoding="mono8")
 
@@ -184,7 +189,7 @@ class StereoNode(Node):
         if self.get_parameter("publish_cloud").value:
             self.publish_cloud(header, depth, confidence)
 
-        latency = (self.get_clock().now() - started).nanoseconds * 1e-9
+        latency = time.monotonic() - started
         self._latencies.append(latency)
         self.publish_diagnostics(stamp, skew, confidence, latency)
 

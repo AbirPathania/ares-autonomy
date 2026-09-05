@@ -74,6 +74,20 @@ class Camera:
     hfov_deg: float = 90.0
     vfov_deg: float = 59.0  # assumed in section 03.4
     max_disparity_px: int = 192  # matcher search range, sets minimum range
+
+    # What the SIMULATOR renders at, which is not what the real unit sees.
+    # Section 06.2: keep simulated camera resolution at 640 by 360, because
+    # the renderer is software. The field of view is unchanged, so the focal
+    # length simply scales with the width and every section 03 relation still
+    # holds. Nodes take their intrinsics from CameraInfo, so nothing
+    # downstream needs to know which of the two it is looking at.
+    sim_width_px: int = 640
+    sim_height_px: int = 360
+    # And a rate the software renderer can actually sustain for four cameras.
+    # Asking for 30 does not produce 30, it produces two eyes rendered on
+    # different passes, which is a 99 ms exposure skew the synchroniser is
+    # right to refuse.
+    sim_update_rate: float = 5.0
     disparity_sigma_px: float = 0.25  # nominal, good matcher on textured ground
     disparity_sigma_px_pessimistic: float = 0.50  # low-contrast terrain
 

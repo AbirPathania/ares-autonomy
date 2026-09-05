@@ -288,15 +288,45 @@ def test_ground_truth_depth_is_named_so_it_cannot_be_used_by_accident(robot):
     assert "ground_truth" in topic, "the name is the safeguard, keep it"
 
 
-def test_the_simulated_intrinsics_are_the_ones_the_tables_used(robot):
-    expected = focal_px(CAMERA.width_px, CAMERA.hfov_deg)
+def test_the_simulated_intrinsics_are_consistent_with_the_render_size(robot):
+    """Section 06.2 renders at 640 by 360 because the renderer is software.
+
+    The field of view is unchanged, so the focal length scales with the width
+    and every section 03 relation still holds. Nodes take their intrinsics
+    from CameraInfo, so nothing downstream needs to know which resolution it
+    is looking at, but the two must agree inside the file.
+    """
+    expected = focal_px(CAMERA.sim_width_px, CAMERA.hfov_deg)
+    assert expected == pytest.approx(320.0, rel=1e-9)
     for sensor in robot.findall(".//sensor[@type='camera']"):
         intrinsics = sensor.find("camera/lens/intrinsics")
         assert float(intrinsics.find("fx").text) == pytest.approx(expected, rel=1e-8)
         assert float(intrinsics.find("fy").text) == pytest.approx(expected, rel=1e-8)
         image = sensor.find("camera/image")
-        assert int(image.find("width").text) == CAMERA.width_px
-        assert int(image.find("height").text) == CAMERA.height_px
+        assert int(image.find("width").text) == CAMERA.sim_width_px
+        assert int(image.find("height").text) == CAMERA.sim_height_px
+
+
+def test_the_render_size_keeps_the_field_of_view_the_tables_assume(robot):
+    """Scaling the render must not quietly change the optics.
+
+    hfov is what section 03 is written against. If the sensor block's
+    horizontal_fov ever stopped matching CAMERA.hfov_deg, every table would
+    still be correct and the simulation would no longer be testing them.
+    """
+    for sensor in robot.findall(".//sensor[@type='camera']"):
+        fov = float(sensor.find("camera/horizontal_fov").text)
+        assert math.degrees(fov) == pytest.approx(CAMERA.hfov_deg, rel=1e-9)
+
+
+def test_the_simulated_rate_is_one_the_software_renderer_can_sustain(robot):
+    """Asking for 30 Hz on four software rendered cameras does not produce
+    30 Hz. It produces the two eyes of a pair on different render passes,
+    which is exposure skew, and the synchroniser is right to refuse it."""
+    for sensor in robot.findall(".//sensor"):
+        rate = float(sensor.find("update_rate").text)
+        assert rate == pytest.approx(CAMERA.sim_update_rate, rel=1e-9)
+        assert rate <= 10.0
 
 
 def test_the_drive_plugin_carries_the_autonomous_speed_cap(robot):

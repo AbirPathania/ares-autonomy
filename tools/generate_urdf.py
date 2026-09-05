@@ -395,22 +395,27 @@ def add_gazebo(robot):
             sub_text(ref, "mu1", "1.0")
             sub_text(ref, "mu2", "1.0")
 
-    f_px = (CAMERA.width_px / 2.0) / math.tan(math.radians(CAMERA.hfov_deg) / 2.0)
+    # Simulated cameras render at the section 06.2 resolution, so the focal
+    # length here is the scaled one. Same field of view, same physics.
+    sim_f_px = (CAMERA.sim_width_px / 2.0) / math.tan(
+        math.radians(CAMERA.hfov_deg) / 2.0
+    )
     for unit in ("mast_cam", "deck_cam"):
         for eye in ("", "_right"):
             ref = sub(robot, "gazebo", reference=f"{unit}{eye}_link")
             sensor = sub(ref, "sensor", name=f"{unit}{eye}", type="camera")
             sub_text(sensor, "always_on", "1")
-            # One update per control period. The sync budget in stereo.py is
-            # about the skew between the pair, not this rate.
-            sub_text(sensor, "update_rate", "30")
+            # A rate the software renderer sustains. Asking for more does not
+            # produce more, it produces the two eyes on different render
+            # passes, which is exposure skew the synchroniser then refuses.
+            sub_text(sensor, "update_rate", fmt(CAMERA.sim_update_rate))
             sub_text(sensor, "visualize", "false")
             sub_text(sensor, "topic", f"/{unit}{eye}/image_raw")
             cam = sub(sensor, "camera")
             sub_text(cam, "horizontal_fov", fmt(math.radians(CAMERA.hfov_deg)))
             image = sub(cam, "image")
-            sub_text(image, "width", str(CAMERA.width_px))
-            sub_text(image, "height", str(CAMERA.height_px))
+            sub_text(image, "width", str(CAMERA.sim_width_px))
+            sub_text(image, "height", str(CAMERA.sim_height_px))
             sub_text(image, "format", "R8G8B8")
             clip = sub(cam, "clip")
             # Near clip inside the closest range the matcher can resolve, so
@@ -419,10 +424,10 @@ def add_gazebo(robot):
             sub_text(clip, "far", "100")
             lens = sub(cam, "lens")
             intrinsics = sub(lens, "intrinsics")
-            sub_text(intrinsics, "fx", fmt(f_px))
-            sub_text(intrinsics, "fy", fmt(f_px))
-            sub_text(intrinsics, "cx", fmt(CAMERA.width_px / 2.0))
-            sub_text(intrinsics, "cy", fmt(CAMERA.height_px / 2.0))
+            sub_text(intrinsics, "fx", fmt(sim_f_px))
+            sub_text(intrinsics, "fy", fmt(sim_f_px))
+            sub_text(intrinsics, "cx", fmt(CAMERA.sim_width_px / 2.0))
+            sub_text(intrinsics, "cy", fmt(CAMERA.sim_height_px / 2.0))
             sub_text(intrinsics, "s", "0")
 
     # Ground truth depth, on a topic named so it cannot end up in the control
@@ -430,13 +435,13 @@ def add_gazebo(robot):
     ref = sub(robot, "gazebo", reference="mast_cam_link")
     sensor = sub(ref, "sensor", name="ground_truth_depth", type="depth_camera")
     sub_text(sensor, "always_on", "1")
-    sub_text(sensor, "update_rate", "10")
+    sub_text(sensor, "update_rate", fmt(CAMERA.sim_update_rate))
     sub_text(sensor, "topic", "/sim/ground_truth/depth")
     cam = sub(sensor, "camera")
     sub_text(cam, "horizontal_fov", fmt(math.radians(CAMERA.hfov_deg)))
     image = sub(cam, "image")
-    sub_text(image, "width", str(CAMERA.width_px))
-    sub_text(image, "height", str(CAMERA.height_px))
+    sub_text(image, "width", str(CAMERA.sim_width_px))
+    sub_text(image, "height", str(CAMERA.sim_height_px))
     clip = sub(cam, "clip")
     sub_text(clip, "near", fmt(CHASSIS.rolling_radius))
     sub_text(clip, "far", "100")
