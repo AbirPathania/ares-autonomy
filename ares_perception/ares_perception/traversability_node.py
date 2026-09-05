@@ -153,7 +153,7 @@ class TraversabilityNode(Node):
             confidence_floor=self.confidence_floor,
             noise=self.noise,
         )
-        limit = speed_limit(state, self.spec)
+        limit = speed_limit(state, self.spec, noise=self.noise)
 
         grid = self.bridge.cv2_to_imgmsg(state.astype(np.uint8), "mono8")
         grid.header = msg.header

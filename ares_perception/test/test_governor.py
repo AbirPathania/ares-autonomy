@@ -214,3 +214,80 @@ def test_the_reason_is_always_populated():
         limit = speed_limit(state, SPEC)
         assert limit.reason
         assert "trusted_range" in limit.as_dict()
+
+
+# --------------------------------------------------------------------------
+# Depth quantisation. Stereo returns land in stripes and the map has gaps
+# between them that are not gaps in the ground.
+# --------------------------------------------------------------------------
+
+
+def test_striped_coverage_does_not_stop_the_vehicle():
+    """The failure the coverage window exists to prevent.
+
+    Stereo depth is quantised by disparity, so at range the returns land in
+    stripes with empty cells between them. Judged cell by cell the corridor
+    reads 0%, 90%, 0%, 100%, and a vehicle that demands a full band stops in
+    front of ground it can see perfectly well. Judged over a window as wide
+    as the depth uncertainty there, it does not.
+    """
+    state = grid(UNKNOWN)
+    xs, _ = SPEC.centres()
+    # Every fourth row measured: a 20 cm stripe pitch on 5 cm cells, which is
+    # roughly what the simulator produces at 3 m.
+    for i, x in enumerate(xs):
+        if x <= 8.0 and i % 4 == 0:
+            state[i, :] = TRAVERSABLE
+
+    noise = np.full(SPEC.shape, 0.15)
+    windowed, _ = trusted_range(state, SPEC, noise=noise)
+    assert windowed > 6.0, "striping is not a hole in the ground"
+    assert speed_limit(state, SPEC, noise=noise).speed == pytest.approx(
+        LIMITS.v_autonomous
+    )
+
+
+def test_sparse_but_real_coverage_counts_as_seen():
+    """Two decided cells across the corridor is a measurement.
+
+    Real stereo delivers 1 to 3 decided cells out of 10 in the near field.
+    Demanding a majority stopped the vehicle in front of open ground.
+    """
+    state = grid(UNKNOWN)
+    xs, _ = SPEC.centres()
+    ys_mid = SPEC.shape[1] // 2
+    for i, x in enumerate(xs):
+        if x <= 8.0:
+            state[i, ys_mid : ys_mid + 2] = TRAVERSABLE
+    reach, _ = trusted_range(state, SPEC)
+    assert reach > 6.0
+
+    # One cell is not. A single return could be anything.
+    thin = grid(UNKNOWN)
+    for i, x in enumerate(xs):
+        if x <= 8.0:
+            thin[i, ys_mid] = TRAVERSABLE
+    assert trusted_range(thin, SPEC)[0] < 1.0
+
+
+def test_the_window_never_shrinks_below_a_cell():
+    """Zero noise must not make the window degenerate."""
+    state = clear_to(grid(), 5.0 + FRONT)
+    with_zero = trusted_range(state, SPEC, noise=np.zeros(SPEC.shape))[0]
+    without = trusted_range(state, SPEC)[0]
+    assert with_zero == pytest.approx(without, abs=SPEC.cell)
+
+
+def test_a_genuine_gap_still_shortens_the_range():
+    """The window must not paper over a real hole.
+
+    A stretch of ground as long as the governing trench, with nothing
+    measured in it at all, is exactly what the vehicle must slow for. It has
+    to survive the windowing that fixes the striping.
+    """
+    state = clear_to(grid(), 12.0)
+    xs, _ = SPEC.centres()
+    blind = (xs > 4.0) & (xs < 4.0 + 4 * TRENCH.width)
+    state[blind, :] = UNKNOWN
+    reach, _ = trusted_range(state, SPEC, noise=np.full(SPEC.shape, 0.15))
+    assert reach == pytest.approx(4.0 - FRONT, abs=0.5)

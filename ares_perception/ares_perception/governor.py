@@ -41,10 +41,22 @@ __all__ = ["SpeedLimit", "trusted_range", "speed_limit"]
 # it cannot fit; wider and it stops for things it would pass beside.
 CORRIDOR_WIDTHS = 1.5
 
-# The share of a range band that must be decided for that band to be trusted.
-# Not all of it: a few unresolved cells in an otherwise measured band is
-# normal, and demanding perfection would stop the vehicle permanently.
-DECIDED_FRACTION = 0.6
+# How much of the corridor has to be measured at a given range before that
+# range counts as seen.
+#
+# This started as a fraction, 60 per cent of the cells across the corridor,
+# and a fraction is the wrong shape of answer. Real stereo delivers 1 to 3
+# decided cells out of 10 in the near field, not because the ground is hidden
+# but because a 50 mm cell at 1 m is finer than the returns are dense, so a
+# 60 per cent rule stopped the vehicle in front of open ground. Measured in
+# the simulator: 0.4:20% 0.6:10% 0.8:0% 1.0:30% 1.2:0% 1.4:20% 1.6:90%.
+#
+# Two cells is a threshold with a meaning instead of a number. One decided
+# cell is a single return and could be anything, including a speck of noise
+# that survived the confidence floor. Two says the corridor was actually
+# sampled at this range. It is the smallest claim worth making, and anything
+# larger is a guess about density dressed up as a safety margin.
+MIN_DECIDED_CELLS = 2
 
 # How much trusted range the vehicle needs beyond its own stopping distance
 # before it is planning rather than merely reacting.
@@ -99,7 +111,13 @@ class SpeedLimit:
         }
 
 
-def trusted_range(state, spec, corridor_half_width=None, decided_fraction=DECIDED_FRACTION):
+def trusted_range(
+    state,
+    spec,
+    corridor_half_width=None,
+    min_decided_cells=MIN_DECIDED_CELLS,
+    noise=None,
+):
     """How far ahead the estimator has actually decided, metres.
 
     Walks out from the vehicle, band by band, and stops at the first band in
@@ -113,7 +131,23 @@ def trusted_range(state, spec, corridor_half_width=None, decided_fraction=DECIDE
     was room. It also means an all-unknown grid returns zero, which is the
     answer that stops the vehicle rather than one that creeps.
 
-    Returns (range ahead of the bumper, fraction decided in the band that
+    noise is the expected one sigma depth error per cell. It sizes the window
+    each range is judged over, and without it the answer is wrong in a way
+    that is easy to miss.
+
+    Stereo depth is quantised by disparity. At 3 m on the simulator's optics
+    adjacent integer disparities are about 140 mm apart, so ground returns
+    land in stripes and the 50 mm cells between them receive nothing. Judged
+    band by band the corridor reads 0%, 90%, 0%, 100%, 0%, and a vehicle that
+    demands a full band stops in front of ground it can see perfectly well.
+    Measured in the simulator: the corridor came back 0 to 30 per cent
+    covered while the camera was looking at open, flat terrain.
+
+    So each range is judged over a window as wide as the depth uncertainty
+    there, which is the distance over which a single measurement actually
+    constrains the surface. Same section 03.2 curve as everywhere else.
+
+    Returns (range ahead of the bumper, fraction decided in the window that
     stopped it).
     """
     if corridor_half_width is None:
@@ -135,15 +169,31 @@ def trusted_range(state, spec, corridor_half_width=None, decided_fraction=DECIDE
     minimum_run = _minimum_unknown_run()
     worst = 1.0
 
+    # Half width of the window each range is judged over: never less than a
+    # cell, and never less than the depth uncertainty there.
+    if noise is None:
+        half_widths = np.full(len(xs), spec.cell / 2.0)
+    else:
+        centre = np.asarray(noise)[:, corridor]
+        half_widths = np.maximum(
+            spec.cell / 2.0, np.nanmax(centre, axis=1) if centre.size else spec.cell
+        )
+
     for i, x in enumerate(xs):
         if x < start:
             continue
-        band = state[i, corridor]
+        lo = np.searchsorted(xs, x - half_widths[i])
+        hi = np.searchsorted(xs, x + half_widths[i], side="right")
+        band = state[lo:hi, corridor]
         if band.size == 0:
             continue
+        # Per along-track row inside the window, so a single well covered
+        # row does not vouch for its neighbours.
+        per_row = np.sum(band != UNKNOWN, axis=1)
+        decided_cells = int(np.max(per_row)) if per_row.size else 0
         decided = float(np.mean(band != UNKNOWN))
 
-        if decided >= decided_fraction:
+        if decided_cells >= min_decided_cells:
             run_start = None
             continue
 
@@ -169,6 +219,7 @@ def speed_limit(
     latency=None,
     safety_factor=None,
     corridor_half_width=None,
+    noise=None,
 ):
     """The speed the vehicle may drive, given what it can currently see.
 
@@ -182,7 +233,7 @@ def speed_limit(
     safety_factor = LIMITS.safety_factor if safety_factor is None else safety_factor
 
     reach, decided = trusted_range(
-        state, spec, corridor_half_width=corridor_half_width
+        state, spec, corridor_half_width=corridor_half_width, noise=noise
     )
 
     if reach <= 0.0:
