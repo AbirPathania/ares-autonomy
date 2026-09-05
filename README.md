@@ -239,6 +239,31 @@ is recorded rather than quietly worked around, and each has a commit.
 - `trusted_range` walked outward from the datum, which is the middle axle, so
   the first half metre of "unknown ground ahead" was the rover's own front
   wheels and the vehicle stopped permanently.
+- The traversability estimator filled unobserved cells with a median and then
+  took gradients over the filled grid, manufacturing a cliff at every boundary
+  of the measured wedge. On flat ground it reported 2.5 per cent obstacle
+  against 0.6 per cent traversable.
+- Its thresholds were fixed while the measurement noise is not. At 6 m a
+  cell's height spread is about 0.14 m from stereo noise alone, so distant
+  ground became an obstacle field made entirely of it. Fixing both took flat
+  ground accuracy from 0.706 to 1.000.
+- A cell needed three returns to count as measured, and a 50 mm cell at 4 m on
+  a 640 pixel image collects about 2.4. The vehicle stopped for its own
+  sampling density.
+- Coverage was judged cell by cell, and stereo depth is quantised: at 3 m
+  adjacent integer disparities are 140 mm apart, so returns land in stripes
+  and the cells between them are empty by construction rather than by
+  occlusion.
+- Coverage required 60 per cent of the corridor. Real stereo delivers 1 to 3
+  cells out of 10 in the near field, so the rule stopped the vehicle in front
+  of an open approach.
+
+The last five are the same mistake wearing different clothes: a threshold
+chosen as a round number rather than derived from something. Each one is
+individually plausible, each one passed its unit tests, and together they held
+the vehicle at 0 km/h on clear ground while every component reported healthy.
+That is what the section 10 gates are for, and it is why the build spec insists
+the simulation must be able to fail.
 
 ### One erratum found in the source document
 
