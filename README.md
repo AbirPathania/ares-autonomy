@@ -58,7 +58,7 @@ on, not hidden.
 | 2 | Devcontainer, URDF generated from constants, TF tree, RViz. | Mac or Codespace | Rover displays correctly, differential enforced, no TF warnings, optical frame test passes. | **passing.** Rover spawns, TF is correct, all four cameras render |
 | 3 | Gazebo worlds 1 and 2. Drive control and mobility. | Both | Gates 1 and 2 from section 10. | **gate 1 passing.** Gate 2 written, not yet run |
 | 4 | Stereo pipeline on rendered RGB. Real matcher, confidence output. | Both | Measured depth error tracks the section 03.2 curve across the range. | **passing in simulation.** See below |
-| 5 | Segmentation, detection, elevation map, Nav2. | Both | Gate 3. Trench detected and stopped for at 0.95 m, missed at 0.50 m. | in progress. Perception path runs end to end; gate 3 not yet passing |
+| 5 | Segmentation, detection, elevation map, Nav2. | Both | Gate 3. Trench detected and stopped for at 0.95 m, missed at 0.50 m. | **gate 3 fails honestly.** The vehicle drives into the trench. See below |
 | 6 | BlenderProc snow and scree generation, fine-tune, gate 4. | Mac | Confidence collapses on textureless snow and the vehicle slows, rather than reporting confident wrong depth. | demonstrated on synthetic data in phase 0. Gate 4 world built, not yet run |
 | 7 | Isaac Sim closed loop, if still warranted. | Rented RTX | Decide after phase 6 whether it adds anything phases 0 to 6 did not. | not started |
 
@@ -226,6 +226,46 @@ vehicle end up. It stops short of the trench, or it drives in. A run that
 times out before the vehicle gets within two stopping distances reports
 INCONCLUSIVE, because a gate that ends before the thing under test happens
 has measured nothing.
+
+With that criterion, gate 3 fails, honestly:
+
+```
+Trench at 6.00 m. Furthest reached 12.98 m, ended at 12.98 m,
+travelled 12.75 m. It entered the trench, which is WRONG
+
+GATE 3: FAIL
+```
+
+**This is the current state and it is the right one to be in.** The gate is
+trustworthy now, and it says the negative obstacle detection does not work
+yet. That is a gate doing its job.
+
+### Why it fails, which is the interesting part
+
+A negative obstacle produces no returns. That is the entire point of section
+02: the floor of the trench is hidden, so the stereo matcher does not report a
+wrong depth there, it reports nothing. The cells over the trench come back
+UNKNOWN, not OBSTACLE, and the geometric classifier has nothing to convict.
+
+The design already anticipates this: unknown shortens the trusted range, which
+lowers the speed. But the run length rule requires a contiguous unmeasured
+stretch at least as long as the governing obstacle before it truncates, and
+the governing obstacle is 0.5 m wide. The trench is exactly at the threshold
+that was derived from it, which is elegant and useless.
+
+The fix is a real piece of design rather than a tuning pass, and it is the
+one the whole vehicle rests on. An unmeasured region is not all one thing:
+
+- unmeasured because it is beyond the sensor's range is expected
+- unmeasured because it is inside a blind zone is expected
+- unmeasured **where coverage was expected and is bounded by measured ground
+  on both sides** is a hole, and it is the only one of the three that should
+  read as an obstacle rather than as a shortened horizon
+
+That third case is what a negative obstacle looks like from a camera, and it
+is the next thing to build. It also happens to be exactly what
+`R_max = w * h / d` predicts the vehicle can and cannot see, so the geometry
+to check it against is already in `ares_math` and already under test.
 
 ## What running it found
 
