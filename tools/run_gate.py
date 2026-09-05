@@ -36,6 +36,12 @@ from ares_math.optics import focal_px
 from ares_math.safety import negative_obstacle_range, stopping_distance
 from ares_math.stereo import depth_error
 
+# What counts as stopped: below this speed, held for this long. The vehicle
+# is capped at 1.111 m/s, so 20 mm/s is unambiguously halted, and two seconds
+# is longer than any step the governor takes on its way down.
+STOP_SPEED = 0.02
+STOP_HOLD = 2.0
+
 SENSOR_QOS = QoSProfile(
     reliability=QoSReliabilityPolicy.BEST_EFFORT,
     history=QoSHistoryPolicy.KEEP_LAST,
@@ -59,6 +65,7 @@ class GateRunner(Node):
         self.speed_limits = []
         self.stopped_at = None
         self.started_moving = None
+        self.slow_since = None
         # Read from CameraInfo, never assumed. The simulator renders at the
         # section 06.2 resolution, so its focal length is not the working
         # case's, and scoring against the wrong one would fail a gate the
@@ -106,13 +113,29 @@ class GateRunner(Node):
             self.fx = float(msg.k[0])
 
     def on_odom(self, msg):
+        now = time.time()
         speed = msg.twist.twist.linear.x
-        self.odom.append((time.time(), msg.pose.pose.position.x, speed))
+        x = msg.pose.pose.position.x
+        self.odom.append((now, x, speed))
+
         if self.started_moving is None and speed > 0.05:
-            self.started_moving = msg.pose.pose.position.x
-        if self.started_moving is not None and abs(speed) < 0.02:
-            if self.stopped_at is None:
-                self.stopped_at = msg.pose.pose.position.x
+            self.started_moving = x
+            return
+        if self.started_moving is None:
+            return
+
+        # A stop is a sustained absence of motion, not a momentary dip. The
+        # governor slows the vehicle in steps, and the speed crosses zero on
+        # the way down more than once. Latching the first crossing reported a
+        # stop at 1.74 m on a run that went on to travel 5 m, and scored it
+        # as having detected a trench four metres further on.
+        if abs(speed) < STOP_SPEED:
+            if self.slow_since is None:
+                self.slow_since = (now, x)
+            elif now - self.slow_since[0] >= STOP_HOLD and self.stopped_at is None:
+                self.stopped_at = self.slow_since[1]
+        else:
+            self.slow_since = None
 
     def on_speed_limit(self, msg):
         self.speed_limits.append(msg.twist.linear.x)
