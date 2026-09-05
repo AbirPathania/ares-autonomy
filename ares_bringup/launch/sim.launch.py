@@ -25,6 +25,7 @@ from launch.substitutions import (
     PythonExpression,
 )
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 WORLDS = ("flat", "step_field", "trench_field", "snow_scree")
@@ -119,7 +120,12 @@ def generate_launch_description():
                 executable="robot_state_publisher",
                 parameters=[
                     {
-                        "robot_description": Command(["xacro ", urdf]),
+                        # ParameterValue with an explicit str type. Without
+                        # it, launch tries to parse the whole URDF as YAML and
+                        # the entire bring-up fails before anything starts.
+                        "robot_description": ParameterValue(
+                            Command(["xacro ", urdf]), value_type=str
+                        ),
                         "use_sim_time": True,
                     }
                 ],

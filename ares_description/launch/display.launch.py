@@ -13,6 +13,7 @@ from launch.actions import DeclareLaunchArgument
 from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 PACKAGE = "ares_description"
@@ -38,7 +39,11 @@ def generate_launch_description():
                 package="robot_state_publisher",
                 executable="robot_state_publisher",
                 parameters=[
-                    {"robot_description": Command(["xacro ", urdf])},
+                    {
+                        "robot_description": ParameterValue(
+                            Command(["xacro ", urdf]), value_type=str
+                        )
+                    },
                     # The URDF is fully resolved at generation time, so this
                     # is a pass through. It stays here so the file loads the
                     # same way it will once macros are added.
