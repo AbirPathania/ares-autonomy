@@ -381,9 +381,9 @@
   </joint>
   <gazebo>
     <joint name="rocker_differential" type="gearbox">
-      <parent link="rocker_left"/>
-      <child link="rocker_right"/>
-      <gearbox_reference_body link="base_link"/>
+      <parent>rocker_left</parent>
+      <child>rocker_right</child>
+      <gearbox_reference_body>base_link</gearbox_reference_body>
       <gearbox_ratio>-1.0</gearbox_ratio>
       <axis>
         <xyz>0 1 0</xyz>

@@ -253,9 +253,13 @@ def test_the_differential_is_present_and_is_not_decorative(robot):
     gearbox = robot.findall(".//joint[@type='gearbox']")
     assert len(gearbox) == 1, "the rocker differential gearbox joint is missing"
     joint = gearbox[0]
-    assert joint.find("parent").get("link") == "rocker_left"
-    assert joint.find("child").get("link") == "rocker_right"
-    assert joint.find("gearbox_reference_body").get("link") == "base_link"
+    # SDFormat spells these as element text, not attributes. The attribute
+    # form parses as valid XML, is silently invalid SDF, and takes the whole
+    # model down with it.
+    assert joint.find("parent").text == "rocker_left"
+    assert joint.find("child").text == "rocker_right"
+    assert joint.find("gearbox_reference_body").text == "base_link"
+    assert joint.find("parent").get("link") is None, "SDF wants text, not an attribute"
     assert float(joint.find("gearbox_ratio").text) == -1.0
     assert "ares_differential" in xml, "the differential plugin is missing"
 

@@ -358,11 +358,16 @@ def add_gazebo(robot):
     # The differential, declaratively. SDFormat gearbox joint with a ratio of
     # one, referencing the hull, so the two rockers are forced to move
     # equally and oppositely relative to the body.
+    # SDFormat, not URDF. Inside a <gazebo> block the converter passes the
+    # XML through untouched, so <parent link="x"/> is silently wrong: SDF
+    # wants <parent>x</parent> as element text. Getting this wrong does not
+    # disable the differential quietly, it fails the whole model parse and
+    # the rover never spawns, which is at least loud.
     gearbox = sub(robot, "gazebo")
     joint = sub(gearbox, "joint", name="rocker_differential", type="gearbox")
-    sub(joint, "parent", link="rocker_left")
-    sub(joint, "child", link="rocker_right")
-    sub(joint, "gearbox_reference_body", link="base_link")
+    sub_text(joint, "parent", "rocker_left")
+    sub_text(joint, "child", "rocker_right")
+    sub_text(joint, "gearbox_reference_body", "base_link")
     # Ratio of minus one: the rockers turn equally and oppositely relative to
     # the hull, which is the differential written as a gear pair.
     sub_text(joint, "gearbox_ratio", "-1.0")
