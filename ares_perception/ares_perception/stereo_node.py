@@ -233,6 +233,7 @@ class StereoNode(Node):
             return
 
         latency = float(np.mean(self._latencies))
+        worst_latency = float(np.max(self._latencies))
         self._latencies = self._latencies[-100:]
 
         # Latency is stopping distance. At 4 km/h every 100 ms of pipeline
@@ -245,8 +246,9 @@ class StereoNode(Node):
         message = (
             f"paired {stats.paired}, refused on skew {stats.rejected_skew} "
             f"({stats.rejection_rate * 100:.1f}%), worst skew "
-            f"{stats.worst_skew * 1e6:.0f} us, match latency {latency * 1e3:.0f} ms "
-            f"costing {cost * 1000:.0f} mm of stopping distance"
+            f"{stats.worst_skew * 1e6:.0f} us, match latency {latency * 1e3:.1f} ms "
+            f"(worst {worst_latency * 1e3:.1f}) costing {cost * 1000:.0f} mm of "
+            "stopping distance"
         )
         if latency > LIMITS.latency:
             self.get_logger().error(
