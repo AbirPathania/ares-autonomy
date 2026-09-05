@@ -151,13 +151,19 @@ def test_confidence_collapses_on_textureless_ground(intrinsics):
 
 
 def test_an_unobserved_cell_is_unknown_and_never_free_space():
-    """The failure mode that drives a rover into a snowdrift at full speed."""
+    """The failure mode that drives a rover into a snowdrift at full speed.
+
+    One point makes exactly one cell measured. Every other cell in a 4 by 4 m
+    grid stays UNKNOWN, and none of them becomes free space.
+    """
     spec = GridSpec(x_min=0.0, x_max=4.0, y_min=-2.0, y_max=2.0)
     points = np.array([[1.0, 0.0, 0.0]])
-    state, _, _ = estimate(points, spec=spec)
-    assert np.all(state[state != TRAVERSABLE] != TRAVERSABLE)
-    assert np.mean(state == UNKNOWN) > 0.9
-    assert not np.any(state[3:, :] == TRAVERSABLE)
+    state, surface, _ = estimate(points, spec=spec)
+    assert int(np.sum(state != UNKNOWN)) == 1, "one point, one measured cell"
+    assert np.mean(state == UNKNOWN) > 0.99
+    # And the cell it did measure has no spread to judge, so roughness cannot
+    # convict it. One return is a height, not a texture.
+    assert int(np.sum(surface.has_spread)) == 0
 
 
 def test_low_confidence_points_do_not_become_free_space():
@@ -330,8 +336,22 @@ def test_the_governing_trench_is_the_one_from_section_02():
     assert z.min() == pytest.approx(-TRENCH.depth, abs=1e-12)
 
 
-def test_rasterise_marks_thinly_sampled_cells_unobserved():
+def test_a_single_return_measures_a_height_but_not_a_spread():
+    """The distinction that decides how empty the map is.
+
+    One return tells you where the ground is in that cell, which is the claim
+    a cell makes, so it counts as measured. It tells you nothing about the
+    spread within the cell, so roughness stays unavailable rather than being
+    reported as zero. Demanding more than one return left the driving
+    corridor 0 to 30 per cent covered on clear ground in the simulator.
+    """
     spec = GridSpec(x_min=0.0, x_max=1.0, y_min=-0.5, y_max=0.5)
-    surface = rasterise(np.array([[0.5, 0.0, 0.0], [0.51, 0.0, 0.0]]), spec=spec)
-    assert surface.count.sum() == 2
-    assert not surface.observed.any(), "two returns is not a measured cell"
+    one = rasterise(np.array([[0.5, 0.0, 0.0]]), spec=spec)
+    assert one.observed.sum() == 1
+    assert one.has_spread.sum() == 0
+
+    two = rasterise(
+        np.array([[0.5, 0.0, 0.0], [0.51, 0.0, 0.02]]), spec=spec
+    )
+    assert two.observed.sum() == 1
+    assert two.has_spread.sum() == 1

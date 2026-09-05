@@ -37,9 +37,23 @@ STATE_NAMES = {UNKNOWN: "unknown", TRAVERSABLE: "traversable", OBSTACLE: "obstac
 # track rather than chosen, so it follows the vehicle if the hull revises.
 CELL_SIZE = CHASSIS.track / 7.0
 
-# A cell needs enough returns for its height statistics to mean anything.
-# Below this it is UNKNOWN, which is the honest answer.
-MIN_POINTS_PER_CELL = 3
+# What it takes for a cell to count as measured.
+#
+# One return tells you the height of the ground there, and that is the whole
+# claim a cell makes. Asking for three does not make the answer better, it
+# makes the map emptier: measured in the simulator, a 50 mm cell at 4 m on a
+# 640 pixel wide image collects about 2.4 surviving points, so a threshold of
+# three left the driving corridor 0 to 30 per cent covered with the camera
+# looking straight at clear ground, and the vehicle stopped for its own
+# sampling density.
+#
+# Two returns are needed before within-cell spread means anything, and
+# roughness is computed only where there are two. A cell with one point still
+# contributes its height to the slope and step tests, and simply has no
+# opinion about roughness, which the NaN handling in classify already treats
+# as "no evidence" rather than "no obstacle".
+MIN_POINTS_PER_CELL = 1
+MIN_POINTS_FOR_ROUGHNESS = 2
 
 
 @dataclass(frozen=True)
@@ -93,6 +107,11 @@ class Surface:
     @property
     def observed(self):
         return self.count >= MIN_POINTS_PER_CELL
+
+    @property
+    def has_spread(self):
+        """Cells with enough returns for z_max - z_min to mean anything."""
+        return self.count >= MIN_POINTS_FOR_ROUGHNESS
 
 
 def rasterise(points, spec=None, confidence=None):
@@ -235,7 +254,7 @@ def classify(
     # range, and this is what catches that.
     with np.errstate(invalid="ignore"):
         roughness = np.where(
-            surface.observed, surface.z_max - surface.z_min, np.nan
+            surface.has_spread, surface.z_max - surface.z_min, np.nan
         )
 
     tolerance = np.zeros_like(z) if noise is None else 2.0 * np.asarray(noise)
