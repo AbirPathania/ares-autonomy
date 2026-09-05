@@ -91,6 +91,12 @@ class TraversabilityNode(Node):
         )
 
         self.last_reason = None
+        # Periodic telemetry. The reason string is only logged when it
+        # changes, which is right for an operator and useless when the answer
+        # is stuck: "nothing measured ahead" printed once looks the same
+        # whether it happened for a second or for the whole run.
+        self.last_stats = None
+        self.create_timer(5.0, self.report)
         self.get_logger().info(
             f"traversability_node up on {', '.join(units)}. Grid "
             f"{self.spec.shape[0]} by {self.spec.shape[1]} at "
@@ -127,6 +133,25 @@ class TraversabilityNode(Node):
 
         self.publish_limit(msg.header, limit)
         self.publish_metrics(state, surface, limit)
+        self.last_stats = (points, state, limit)
+
+    def report(self):
+        if self.last_stats is None:
+            self.get_logger().warn("no cloud processed yet")
+            return
+        points, state, limit = self.last_stats
+        observed = float(np.mean(state != 0))
+        traversable = float(np.mean(state == 1))
+        obstacle = float(np.mean(state == 2))
+        ahead = points[points[:, 0] > 0]
+        reach = float(np.max(ahead[:, 0])) if ahead.size else 0.0
+        self.get_logger().info(
+            f"{len(points)} points, furthest {reach:.2f} m. Grid: "
+            f"{observed * 100:.1f}% decided, {traversable * 100:.1f}% "
+            f"traversable, {obstacle * 100:.1f}% obstacle. Trusted range "
+            f"{limit.trusted_range:.2f} m, allowing {limit.kmh:.2f} km/h "
+            f"({limit.reason})"
+        )
 
     def to_base_link(self, points, header):
         """Transform the cloud out of the optical frame. Returns None if TF
