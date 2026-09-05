@@ -193,6 +193,40 @@ from the document and asserts its own results round to the values printed in
 the PDF. So three things must agree before a test can pass: the printed table,
 the generator, and the package.
 
+## Gate 3 passed three times before it measured anything
+
+Worth writing down, because it is the failure the build spec spends a whole
+section on and it happened here anyway, three times running.
+
+Gate 3 is the trench: from a 0.95 m mast the vehicle sees the floor at
+1.583 m and needs 1.426 m to stop, so it stops short; from 0.50 m it sees it
+at 0.833 m and drives in. The gate has to show both.
+
+    first pass    criterion was "stopped somewhere before the trench". The
+                  rover halted at 0.83 m for a phantom obstacle four
+                  centimetres in front of its own bumper, nowhere near the
+                  trench at 6 m, and the gate called it a detection.
+
+    second pass   criterion required an approach. The rover reported
+                  "stopped at 1.74 m, travelled 5.03 m", which does not
+                  reconcile: the stop detector latched the first dip through
+                  zero speed, and the governor crosses zero on its way down
+                  more than once.
+
+    third pass    stop detection now required two seconds of stillness. The
+                  rover paused at 2.99 m, then carried on to 4.73 m, and
+                  never reached the trench at all. The gate scored the pause.
+
+Every one of those was the measurement being wrong rather than the vehicle,
+and every one read as success. None of them would have been visible from the
+code, from the tests, or from a screenshot of a rover driving.
+
+The criterion is now the claim section 02 actually makes: where does the
+vehicle end up. It stops short of the trench, or it drives in. A run that
+times out before the vehicle gets within two stopping distances reports
+INCONCLUSIVE, because a gate that ends before the thing under test happens
+has measured nothing.
+
 ## What running it found
 
 Everything below was found by executing the thing, not by reading it. Each one
