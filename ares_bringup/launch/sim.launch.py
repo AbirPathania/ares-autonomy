@@ -17,7 +17,7 @@ a perception node subscribing to it is visible in a launch file diff.
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, ExecuteProcess, GroupAction
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import (
     Command,
     LaunchConfiguration,
@@ -112,7 +112,7 @@ def generate_launch_description():
             ExecuteProcess(
                 cmd=["gz", "sim", "-r", "--render-engine", "ogre", world_file],
                 output="screen",
-                condition=IfCondition(PythonExpression(["not ", headless])),
+                condition=UnlessCondition(headless),
             ),
             Node(
                 package="robot_state_publisher",
