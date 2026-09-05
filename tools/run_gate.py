@@ -82,7 +82,10 @@ class GateRunner(Node):
         self.create_subscription(
             TwistStamped, "/speed_limit", self.on_speed_limit, 10
         )
-        self.cmd = self.create_publisher(Twist, "/cmd_vel", 10)
+        # Through the governor, never around it. Publishing straight to
+        # /cmd_vel would let the gate drive at full speed past the very
+        # obstacle it is meant to be measuring the response to.
+        self.cmd = self.create_publisher(Twist, "/cmd_vel_raw", 10)
         self.create_timer(0.1, self.tick)
 
     # ------------------------------------------------------------ callbacks

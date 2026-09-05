@@ -26,8 +26,9 @@ from rclpy.node import Node
 from rclpy.qos import QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy
 from sensor_msgs.msg import Image, PointCloud2
 from std_msgs.msg import Float32MultiArray, String
+from tf2_ros import Buffer, TransformListener
 
-from ares_math.constants import LIMITS
+from ares_math.constants import CHASSIS, LIMITS
 
 from .governor import speed_limit
 from .traversability import STATE_NAMES, GridSpec, estimate
@@ -58,6 +59,16 @@ class TraversabilityNode(Node):
         self.confidence_floor = float(self.get_parameter("confidence_floor").value)
         self.bridge = CvBridge()
 
+        # The cloud arrives in the camera optical frame: Z forward, X right,
+        # Y down. This grid is in base_link: X forward, Y left, Z up. Treating
+        # one as the other is the bug section 08 warns about, and it does not
+        # look like a bug, it looks like the rover seeing an obstacle two
+        # centimetres in front of itself. Look the transform up, never assume
+        # it, and refuse to publish if it is not available yet.
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
+        self.warned_about_tf = False
+
         self.create_subscription(
             PointCloud2, f"/{unit}/points", self.on_cloud, qos_profile=SENSOR_QOS
         )
@@ -78,6 +89,11 @@ class TraversabilityNode(Node):
 
     def on_cloud(self, msg):
         points = _read_xyz(msg)
+        if points.size:
+            points = self.to_base_link(points, msg.header)
+        if points is None:
+            self.publish_limit(msg.header, None)
+            return
         if points.size == 0:
             # No points is not empty ground. It is no information, and the
             # governor treats it as such.
@@ -96,6 +112,39 @@ class TraversabilityNode(Node):
 
         self.publish_limit(msg.header, limit)
         self.publish_metrics(state, surface, limit)
+
+    def to_base_link(self, points, header):
+        """Transform the cloud out of the optical frame. Returns None if TF
+        is not ready, because guessing is how a ground plane becomes a wall."""
+        try:
+            tf = self.tf_buffer.lookup_transform(
+                "base_link", header.frame_id, rclpy.time.Time()
+            )
+        except Exception as exc:
+            if not self.warned_about_tf:
+                self.get_logger().warn(
+                    f"no transform from {header.frame_id} to base_link yet "
+                    f"({exc}). Publishing a stop until there is one."
+                )
+                self.warned_about_tf = True
+            return None
+
+        t = tf.transform.translation
+        q = tf.transform.rotation
+        rotation = _quaternion_matrix(q.x, q.y, q.z, q.w)
+        moved = points @ rotation.T + np.array([t.x, t.y, t.z])
+
+        # Drop anything inside the vehicle's own footprint. The hull and the
+        # wheels are in the camera's field of view, and a rover that treats
+        # its own bumper as an obstacle at 0.02 m never moves.
+        ahead = CHASSIS.axle_pitch_front + CHASSIS.rolling_radius
+        beside = CHASSIS.track / 2.0
+        own_body = (
+            (moved[:, 0] < ahead)
+            & (moved[:, 0] > -(CHASSIS.axle_pitch_rear + CHASSIS.rolling_radius))
+            & (np.abs(moved[:, 1]) < beside)
+        )
+        return moved[~own_body]
 
     def publish_limit(self, header, limit):
         command = TwistStamped()
@@ -138,6 +187,21 @@ class TraversabilityNode(Node):
             float(limit.speed),
         ]
         self.metrics_pub.publish(message)
+
+
+def _quaternion_matrix(x, y, z, w):
+    """Rotation matrix from a quaternion. Same convention as rpy_matrix."""
+    n = np.sqrt(x * x + y * y + z * z + w * w)
+    if n == 0.0:
+        return np.eye(3)
+    x, y, z, w = x / n, y / n, z / n, w / n
+    return np.array(
+        [
+            [1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+            [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+            [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)],
+        ]
+    )
 
 
 def _read_xyz(msg):

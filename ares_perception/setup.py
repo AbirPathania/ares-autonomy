@@ -19,6 +19,7 @@ setup(
     entry_points={
         "console_scripts": [
             "stereo_node = ares_perception.stereo_node:main",
+            "speed_governor = ares_perception.governor_node:main",
             "traversability_node = ares_perception.traversability_node:main",
             "segmentation_node = ares_perception.segmentation_node:main",
             "detection_node = ares_perception.detection_node:main",

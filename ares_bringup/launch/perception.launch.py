@@ -74,6 +74,15 @@ def generate_launch_description():
                 parameters=[{"unit": "mast_cam", "use_sim_time": True}],
                 output="screen",
             ),
+            # Nothing else publishes /cmd_vel. Planners and operators publish
+            # /cmd_vel_raw and this node clamps it, so the speed limit is
+            # binding rather than advisory.
+            Node(
+                package="ares_perception",
+                executable="speed_governor",
+                parameters=[{"use_sim_time": True}],
+                output="screen",
+            ),
             Node(
                 package="ares_perception",
                 executable="segmentation_node",
