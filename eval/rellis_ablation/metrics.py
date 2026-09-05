@@ -16,8 +16,7 @@ from dataclasses import asdict, dataclass, field
 import numpy as np
 
 from ares_math.stereo import depth_error
-
-from .traversability import OBSTACLE, TRAVERSABLE, UNKNOWN
+from ares_perception.traversability import OBSTACLE, TRAVERSABLE, UNKNOWN
 
 
 @dataclass

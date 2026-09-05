@@ -11,10 +11,8 @@ import pytest
 
 from ares_math.constants import MOBILITY, TRENCH
 from ares_math.kinematics import stability_limits
-from eval.rellis_ablation import synthetic as syn
-from eval.rellis_ablation.depth import StereoMatcher, depth_to_points
-from eval.rellis_ablation.metrics import score_depth, score_traversability
-from eval.rellis_ablation.traversability import (
+from ares_perception.matcher import StereoMatcher, depth_to_points
+from ares_perception.traversability import (
     OBSTACLE,
     TRAVERSABLE,
     UNKNOWN,
@@ -22,6 +20,8 @@ from eval.rellis_ablation.traversability import (
     estimate,
     rasterise,
 )
+from eval.rellis_ablation import synthetic as syn
+from eval.rellis_ablation.metrics import score_depth, score_traversability
 
 # Small enough to keep the suite quick, large enough for stereo to be real.
 SMALL = 240, 136
@@ -222,7 +222,7 @@ def test_the_estimator_reads_its_limits_from_ares_math():
     import ast
     import pathlib
 
-    from eval.rellis_ablation import traversability
+    from ares_perception import traversability
 
     source = pathlib.Path(traversability.__file__).read_text()
     tree = ast.parse(source)

@@ -8,7 +8,16 @@
   "name": "ares-autonomy",
   "build": { "dockerfile": "Dockerfile" },
   "features": {
-    "ghcr.io/devcontainers/features/desktop-lite:1": { "password": "ares" }
+    "ghcr.io/devcontainers/features/desktop-lite:1": { "password": "ares" },
+
+    // Not in section 06.2, and needed. The osrf/ros images carry no SSH
+    // server, so without this a Codespace built from them can only be
+    // reached through the browser or VS Code. Section 06.4 wants this
+    // environment used for the automated gates, and a gate you cannot drive
+    // from a terminal is not automated. Codespaces falls back to a recovery
+    // container when it cannot open a shell, which looks like a build
+    // failure and is not one.
+    "ghcr.io/devcontainers/features/sshd:1": { "version": "latest" }
   },
   "forwardPorts": [6080],
   "portsAttributes": { "6080": { "label": "desktop" } },

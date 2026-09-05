@@ -25,8 +25,7 @@ import numpy as np
 from ares_math.constants import CAMERA, MOBILITY, SENSORS, TRENCH
 from ares_math.kinematics import rpy_matrix
 from ares_math.optics import focal_px
-
-from .depth import Intrinsics
+from ares_perception.matcher import Intrinsics
 
 RENDER_WIDTH = 640
 RENDER_HEIGHT = 360

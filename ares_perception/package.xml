@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>ares_perception</name>
+  <version>0.1.0</version>
+  <description>
+    The perception stack. Two heads, not one: "identify a tree" is the wrong
+    question off-road, and "can I drive on this pixel" is the useful one.
+
+    The algorithms here are plain Python and import without ROS, which is what
+    lets the phase 0 ablation in eval/ run the real flight code rather than a
+    copy of it. The nodes are thin wrappers.
+  </description>
+  <maintainer email="engineering@patroclus.systems">Patroclus Systems</maintainer>
+  <license>Proprietary</license>
+
+  <exec_depend>ares_description</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>image_transport</exec_depend>
+  <exec_depend>message_filters</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>vision_msgs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>grid_map_msgs</exec_depend>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

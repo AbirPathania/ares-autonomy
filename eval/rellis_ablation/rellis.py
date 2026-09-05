@@ -24,7 +24,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-from .depth import Intrinsics
+from ares_perception.matcher import Intrinsics
 
 # Every path fragment the loader expects, in one place, so a layout that
 # turns out to differ is a single edit rather than a search.

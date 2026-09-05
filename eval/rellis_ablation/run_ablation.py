@@ -24,11 +24,11 @@ import numpy as np
 
 from ares_math.constants import REVISION
 from ares_math.kinematics import stability_limits
+from ares_perception.matcher import StereoMatcher, depth_to_points
+from ares_perception.traversability import UNKNOWN, GridSpec, estimate
 
 from . import synthetic as syn
-from .depth import StereoMatcher, depth_to_points
 from .metrics import Ablation, score_by_range, score_depth, score_traversability
-from .traversability import UNKNOWN, GridSpec, estimate
 
 REPORT_DIR = Path(__file__).resolve().parent / "report"
 

@@ -9,3 +9,8 @@ ignore = ["E741", "N803", "N806"]
 
 [lint.per-file-ignores]
 "ares_math/tests/*" = ["E501"]
+
+[lint.isort]
+# ares_perception is an ament_python package, so its importable root is one
+# level down and ruff cannot infer that it is ours.
+known-first-party = ["ares_math", "ares_perception", "ares_sim", "eval", "tools"]
